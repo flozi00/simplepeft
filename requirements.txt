@@ -1,0 +1,10 @@
+transformers
+datasets
+jiwer
+https://github.com/huggingface/peft/archive/refs/heads/main.zip
+lightning
+bitsandbytes>=0.38.1
+accelerate
+gputil
+wandb
+lion-pytorch
