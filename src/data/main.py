@@ -1,8 +1,8 @@
-from data.ASRCollator import ASRDataCollator
+from src.data.ASRCollator import ASRDataCollator
 from torch.utils.data import DataLoader
-from data.TEXTCollator import CLMDataCollator, TextTextDataCollator
+from src.data.TEXTCollator import CLMDataCollator, TextTextDataCollator
 
-from utils import IS_WINDOWS, Tasks
+from src.utils import IS_WINDOWS, Tasks
 
 
 def get_dataloader(
@@ -36,7 +36,7 @@ def get_dataloader(
         batch_size=BATCH_SIZE,
         shuffle=True,
         pin_memory=False if IS_WINDOWS else True,
-        num_workers=0 if IS_WINDOWS else 8,
+        num_workers=0 if IS_WINDOWS else 2,
     )
 
     return dloader

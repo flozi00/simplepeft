@@ -1,7 +1,7 @@
 transformers
 datasets
 jiwer
-https://github.com/huggingface/peft/archive/refs/heads/main.zip
+peft
 lightning
 bitsandbytes>=0.38.1
 accelerate

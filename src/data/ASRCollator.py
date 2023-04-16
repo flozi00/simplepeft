@@ -3,7 +3,7 @@ from typing import Dict, List, Union
 
 import torch
 
-from languages import LANGUAGES
+from src.languages import LANGUAGES
 from transformers import AutoProcessor
 
 

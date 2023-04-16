@@ -1,14 +1,14 @@
 import datasets
-from data.main import get_dataloader
-from models import get_model
-from train.train import start_training
-from utils import Tasks
+from src.data.main import get_dataloader
+from src.models import get_model
+from src.train.train import start_training
+from src.utils import Tasks
 
-BATCH_SIZE = 2
-BASE_MODEL = "facebook/opt-350m"
-PEFT_MODEL = "opt-350m-german-lora-instructions"
+BATCH_SIZE = 1
+BASE_MODEL = "malteos/bloom-6b4-clp-german"
+PEFT_MODEL = "bloom-6b4-german-lora-instructions"
 TASK = Tasks.TEXT_GEN
-LR = 1e-5
+LR = 1e-4
 
 
 def add_prefix(example):
@@ -26,6 +26,8 @@ def get_dataset():
 
     ds = ds.map(add_prefix)
 
+    ds = ds.filter(lambda x: len(x["instruction"]) < 1024 * 3)
+
     return ds
 
 
@@ -35,6 +37,8 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
     )
+
+    processor.pad_token = processor.eos_token
 
     cv_data = get_dataset()
 

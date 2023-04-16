@@ -1,14 +1,14 @@
 import datasets
-from data.main import get_dataloader
-from models import get_model
-from train.train import start_training
-from utils import Tasks
+from src.data.main import get_dataloader
+from src.models import get_model
+from src.train.train import start_training
+from src.utils import Tasks
 
-BATCH_SIZE = 64
+BATCH_SIZE = 1
 BASE_MODEL = "GermanT5/t5-efficient-gc4-all-german-large-nl36"
 PEFT_MODEL = "t5-large-german-lora-instructions"
 TASK = Tasks.Text2Text
-LR = 1e-5
+LR = 1e-4
 
 
 def add_prefix(example):

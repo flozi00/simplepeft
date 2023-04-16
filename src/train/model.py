@@ -34,7 +34,7 @@ class lightningmodel(pl.LightningModule):
         for gpu in gpus:
             while gpu.temperature > 74:
                 time.sleep(4)
-        self.log("train/loss", loss)
+        self.log("train/loss", loss, prog_bar=True, on_step=True, on_epoch=True)
 
         if self.trained % 1000 == 0 and self.trained != 0:
             try:

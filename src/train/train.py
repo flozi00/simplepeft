@@ -2,7 +2,7 @@ import lightning.pytorch as pl
 from lightning.pytorch.callbacks import LearningRateMonitor
 from lightning.pytorch.loggers import WandbLogger
 
-from train.model import lightningmodel
+from src.train.model import lightningmodel
 
 import warnings
 

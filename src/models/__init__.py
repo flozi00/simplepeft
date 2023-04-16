@@ -1,21 +1,16 @@
-from models.speech import SPEECH_MODELS
-from models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
+from src.models.speech import SPEECH_MODELS
+from src.models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
 import torch
 from transformers import AutoConfig
 
-from utils import Tasks
+from src.utils import Tasks
 
 try:
 
     bnb_available = True
 except ImportError:
     bnb_available = False
-
-try:
-    torch.set_float32_matmul_precision("medium")
-except Exception as e:
-    print(e)
 
 
 def get_model(task: str, model_name: str, peft_name: str = None):
@@ -79,10 +74,18 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                     target_modules=list_to_use[model_type].get("target_modules"),
                     lora_dropout=0.0,
                     task_type=list_to_use[model_type].get("task_type", None),
+                    inference_mode=False,
                 )
 
                 try:
-                    model = PeftModel.from_pretrained(model, peft_name)
+                    model = PeftModel.from_pretrained(
+                        model,
+                        peft_name,
+                        load_in_8bit=list_to_use[model_type].get("8-bit")
+                        and bnb_available,
+                        torch_dtype=torch.float16,
+                        device_map="auto",
+                    )
                 except Exception as e:
                     print(e)
                     model = get_peft_model(model, peft_config)
