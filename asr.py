@@ -1,9 +1,8 @@
 import datasets
-import pandas as pd
-from src.data.main import get_dataloader
-from src.models import get_model
-from src.train.train import start_training
-from src.utils import Tasks
+from simplepeft.data.main import get_dataloader
+from simplepeft.models import get_model
+from simplepeft.train.train import start_training
+from simplepeft.utils import Tasks
 
 BATCH_SIZE = 64
 BASE_MODEL = "openai/whisper-large-v2"

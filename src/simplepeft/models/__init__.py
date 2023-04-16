@@ -1,10 +1,10 @@
-from src.models.speech import SPEECH_MODELS
-from src.models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
+from ..models.speech import SPEECH_MODELS
+from ..models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
 import torch
 from transformers import AutoConfig
 
-from src.utils import Tasks
+from ..utils import Tasks
 
 try:
 
@@ -42,7 +42,6 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                 .from_pretrained(
                     model_name,
                     load_in_8bit=list_to_use[model_type].get("8-bit") and bnb_available,
-                    torch_dtype=torch.float16,
                     device_map="auto",
                 )
             )
@@ -81,10 +80,6 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                     model = PeftModel.from_pretrained(
                         model,
                         peft_name,
-                        load_in_8bit=list_to_use[model_type].get("8-bit")
-                        and bnb_available,
-                        torch_dtype=torch.float16,
-                        device_map="auto",
                     )
                 except Exception as e:
                     print(e)

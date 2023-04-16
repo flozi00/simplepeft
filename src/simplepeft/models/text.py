@@ -1,11 +1,16 @@
-from transformers import AutoModelForSeq2SeqLM, AutoModelForCausalLM, AutoTokenizer
+from transformers import (
+    AutoModelForSeq2SeqLM,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    T5ForConditionalGeneration,
+)
 from peft import TaskType
 
 TEXT_TEXT_MODELS = {
     "t5": {
-        "class": AutoModelForSeq2SeqLM,
+        "class": T5ForConditionalGeneration,
         "processor": AutoTokenizer,
-        "8-bit": False,
+        "8-bit": True,
         "target_modules": ["q", "v"],
         "task_type": TaskType.SEQ_2_SEQ_LM,
     },

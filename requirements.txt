@@ -1,8 +1,7 @@
-transformers
+transformers>=4.28.1
 datasets
-jiwer
 peft
-lightning
+lightning==2.0.1
 bitsandbytes>=0.38.1
 accelerate
 gputil

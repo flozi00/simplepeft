@@ -2,15 +2,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 import lightning.pytorch as pl
 import GPUtil
 import time
-
-try:
-    import bitsandbytes as bnb
-
-    optim = bnb.optim.Lion8bit
-except ImportError:
-    from lion_pytorch import Lion
-
-    optim = Lion
+from lion_pytorch import Lion
 
 
 class lightningmodel(pl.LightningModule):
@@ -31,10 +23,22 @@ class lightningmodel(pl.LightningModule):
         self.trained += 1
 
         gpus = GPUtil.getGPUs()
-        for gpu in gpus:
-            while gpu.temperature > 74:
+
+        for gpu_num in range(len(gpus)):
+            gpu = gpus[gpu_num]
+            self.log(
+                f"train/gpu_temp_{gpu_num}",
+                gpu.temperature,
+                prog_bar=True,
+                on_step=True,
+            )
+            self.log(
+                "train/gpu_load_{gpu_num}", gpu.memoryUtil, prog_bar=True, on_step=True
+            )
+            if gpu.temperature >= 74:
                 time.sleep(4)
-        self.log("train/loss", loss, prog_bar=True, on_step=True, on_epoch=True)
+
+        self.log("train/loss", loss, prog_bar=True, on_step=True)
 
         if self.trained % 1000 == 0 and self.trained != 0:
             try:
@@ -46,7 +50,7 @@ class lightningmodel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = optim(self.parameters(), lr=self.lr)
+        optimizer = Lion(self.parameters(), lr=self.lr)
         scheduler = ExponentialLR(
             optimizer=optimizer,
             gamma=0.99999,

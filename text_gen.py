@@ -1,14 +1,14 @@
 import datasets
-from src.data.main import get_dataloader
-from src.models import get_model
-from src.train.train import start_training
-from src.utils import Tasks
+from simplepeft.data.main import get_dataloader
+from simplepeft.models import get_model
+from simplepeft.train.train import start_training
+from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
 BASE_MODEL = "malteos/bloom-6b4-clp-german"
 PEFT_MODEL = "bloom-6b4-german-lora-instructions"
 TASK = Tasks.TEXT_GEN
-LR = 1e-4
+LR = 1e-6
 
 
 def add_prefix(example):

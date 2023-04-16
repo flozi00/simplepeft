@@ -3,7 +3,7 @@ from typing import Dict, List, Union
 
 import torch
 
-from src.languages import LANGUAGES
+from ..languages import LANGUAGES
 from transformers import AutoProcessor
 
 
@@ -47,7 +47,7 @@ class ASRDataCollator:
                     ft: getattr(
                         extracted,
                         ft,
-                    )[0].half()
+                    )[0]
                 }
             )
 

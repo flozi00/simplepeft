@@ -1,8 +1,8 @@
-from src.data.ASRCollator import ASRDataCollator
+from ..data.ASRCollator import ASRDataCollator
 from torch.utils.data import DataLoader
-from src.data.TEXTCollator import CLMDataCollator, TextTextDataCollator
+from ..data.TEXTCollator import CLMDataCollator, TextTextDataCollator
 
-from src.utils import IS_WINDOWS, Tasks
+from ..utils import IS_WINDOWS, Tasks
 
 
 def get_dataloader(
