@@ -3,25 +3,36 @@ from simplepeft.data.main import get_dataloader
 from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
+import pandas as pd
 
 BATCH_SIZE = 64
 BASE_MODEL = "openai/whisper-large-v2"
-PEFT_MODEL = "whisper-large-v2-german-lora-cv13"
+PEFT_MODEL = "whisper-large-v2-german-lora-cv13-simplepeft"
 TASK = Tasks.ASR
 LR = 1e-5
+CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
 
 
 def get_dataset():
-    d_sets = datasets.load_dataset(
-        "mozilla-foundation/common_voice_13_0", "de", split="train"
-    )
+    df = pd.read_table(f"{CV_DATA_PATH}validated.tsv")
+    df["audio"] = f"{CV_DATA_PATH}clips/" + df["path"].astype(str)
+    df["down_votes"] = df["down_votes"].astype(int)
+    df["up_votes"] = df["up_votes"].astype(int)
+    df["sentence"] = df["sentence"].astype(str)
 
-    d_sets = d_sets.filter(lambda x: len(x["sentence"]) > 5)
-    d_sets = d_sets.filter(lambda x: x["down_votes"] <= 0 and x["up_votes"] >= 2)
+    mask = (
+        (df["down_votes"] <= 0)
+        & (df["up_votes"] >= 2)
+        & (df["sentence"].str.len() >= 5)
+    )
+    df = df.loc[mask]
+
+    d_sets = datasets.Dataset.from_pandas(df)
 
     d_sets = d_sets.cast_column("audio", datasets.features.Audio(sampling_rate=16000))
     d_sets = d_sets.shuffle(seed=48)
-    d_sets = d_sets.with_format("torch")
+
+    print(d_sets)
 
     return d_sets
 

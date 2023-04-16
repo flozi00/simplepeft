@@ -5,8 +5,8 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
-BASE_MODEL = "malteos/bloom-6b4-clp-german"
-PEFT_MODEL = "bloom-6b4-german-lora-instructions"
+BASE_MODEL = "facebook/opt-1.3b"
+PEFT_MODEL = "opt-1.3b-german-lora-instructions"
 TASK = Tasks.TEXT_GEN
 LR = 1e-6
 
@@ -37,8 +37,6 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
     )
-
-    processor.pad_token = processor.eos_token
 
     cv_data = get_dataset()
 

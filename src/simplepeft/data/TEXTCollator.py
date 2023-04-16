@@ -56,11 +56,8 @@ class CLMDataCollator:
             padding="max_length",
             truncation=True,
             return_tensors="pt",
-        )
+        ).input_ids
 
-        labels = inputs["input_ids"].clone()
-        labels[labels == self.tok.pad_token_id] = -100
+        batch = {"input_ids": inputs, "labels": inputs}
 
-        inputs["labels"] = labels
-
-        return inputs
+        return batch

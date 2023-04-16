@@ -1,5 +1,5 @@
 from transformers import (
-    AutoModelForSeq2SeqLM,
+    BloomForCausalLM,
     AutoModelForCausalLM,
     AutoTokenizer,
     T5ForConditionalGeneration,
@@ -29,13 +29,6 @@ TEXT_GEN_MODELS = {
             "fc1",
             "fc2",
         ],
-        "task_type": TaskType.CAUSAL_LM,
-    },
-    "bloom": {
-        "class": AutoModelForCausalLM,
-        "processor": AutoTokenizer,
-        "8-bit": False,
-        "target_modules": ["query_key_value"],
         "task_type": TaskType.CAUSAL_LM,
     },
 }

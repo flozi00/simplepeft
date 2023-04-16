@@ -131,3 +131,4 @@ dmypy.json
 wandb
 .ruff_cache
 *-lora-*
+cv-*
