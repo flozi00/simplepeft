@@ -2,7 +2,6 @@ transformers>=4.28.1
 datasets
 peft
 lightning==2.0.1
-bitsandbytes>=0.38.1
 accelerate
 gputil
 wandb

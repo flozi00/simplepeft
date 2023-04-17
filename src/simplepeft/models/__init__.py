@@ -7,7 +7,9 @@ from transformers import AutoConfig
 from ..utils import Tasks
 
 try:
+    import bitsandbytes as bnb
 
+    bnb_try = bnb.optim  # only for linter
     bnb_available = True
 except ImportError:
     bnb_available = False
