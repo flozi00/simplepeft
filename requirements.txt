@@ -7,3 +7,5 @@ accelerate
 gputil
 wandb
 lion-pytorch
+librosa
+soundfile

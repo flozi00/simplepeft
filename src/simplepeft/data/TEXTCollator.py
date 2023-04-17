@@ -35,7 +35,10 @@ class TextTextDataCollator:
 
         labels[labels == self.tok.pad_token_id] = -100
 
-        batch = {"input_ids": model_inputs, "labels": labels}
+        batch = {
+            "input_ids": model_inputs,
+            "labels": labels,
+        }
         return batch
 
 
@@ -58,6 +61,9 @@ class CLMDataCollator:
             return_tensors="pt",
         ).input_ids
 
-        batch = {"input_ids": inputs, "labels": inputs}
+        batch = {
+            "input_ids": inputs,
+            "labels": inputs,
+        }
 
         return batch

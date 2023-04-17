@@ -47,7 +47,7 @@ class ASRDataCollator:
                     ft: getattr(
                         extracted,
                         ft,
-                    )[0]
+                    )[0].half()
                 }
             )
 

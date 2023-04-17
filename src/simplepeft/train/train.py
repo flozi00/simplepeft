@@ -9,7 +9,7 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-def start_training(model, processor, dloader, PEFT_MODEL, LR):
+def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict):
     plmodel = lightningmodel(
         model_name=PEFT_MODEL,
         model=model,
@@ -26,7 +26,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR):
         log_every_n_steps=1,
         accelerator="gpu",
         devices=1,
-        precision=32,
+        precision=model_conf.get("precision", 32),
         accumulate_grad_batches=1,
         callbacks=[lr_monitor],
         gradient_clip_val=0.5,

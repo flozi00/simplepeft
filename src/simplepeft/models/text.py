@@ -30,5 +30,6 @@ TEXT_GEN_MODELS = {
             "fc2",
         ],
         "task_type": TaskType.CAUSAL_LM,
+        "precision": 16,
     },
 }

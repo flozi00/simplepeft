@@ -35,8 +35,8 @@ def get_dataloader(
         collate_fn=data_collator,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        pin_memory=False if IS_WINDOWS else True,
-        num_workers=0 if IS_WINDOWS else 2,
+        pin_memory=False,
+        num_workers=0,
     )
 
     return dloader

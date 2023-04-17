@@ -5,7 +5,7 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 BASE_MODEL = "openai/whisper-large-v2"
 PEFT_MODEL = "whisper-large-v2-german-lora-cv13-simplepeft"
 TASK = Tasks.ASR
@@ -38,7 +38,7 @@ def get_dataset():
 
 
 def main():
-    model, processor = get_model(
+    model, processor, model_conf = get_model(
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
@@ -54,7 +54,12 @@ def main():
     )
 
     start_training(
-        model=model, processor=processor, dloader=dloader, PEFT_MODEL=PEFT_MODEL, LR=LR
+        model=model,
+        processor=processor,
+        dloader=dloader,
+        PEFT_MODEL=PEFT_MODEL,
+        LR=LR,
+        model_conf=model_conf,
     )
 
 

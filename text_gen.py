@@ -32,7 +32,7 @@ def get_dataset():
 
 
 def main():
-    model, processor = get_model(
+    model, processor, model_conf = get_model(
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
@@ -50,7 +50,12 @@ def main():
     )
 
     start_training(
-        model=model, processor=processor, dloader=dloader, PEFT_MODEL=PEFT_MODEL, LR=LR
+        model=model,
+        processor=processor,
+        dloader=dloader,
+        PEFT_MODEL=PEFT_MODEL,
+        LR=LR,
+        model_conf=model_conf,
     )
 
 

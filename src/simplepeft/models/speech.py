@@ -27,6 +27,7 @@ SPEECH_MODELS = {
             "fc2",
         ],
         "output_embedding_layer_name": "proj_out",
+        "precision": 16,
     },
     "wav2vec2": {
         "class": AutoModelForCTC,

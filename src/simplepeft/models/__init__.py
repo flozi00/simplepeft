@@ -36,19 +36,15 @@ def get_model(task: str, model_name: str, peft_name: str = None):
 
     for model_type in list_to_check:
         if model_type.lower() in model_type_by_config.lower():
-            model = (
-                list_to_use[model_type]
-                .get("class")
-                .from_pretrained(
-                    model_name,
-                    load_in_8bit=list_to_use[model_type].get("8-bit") and bnb_available,
-                    device_map="auto",
-                )
+            model_conf = list_to_use[model_type]
+            model = model_conf.get("class").from_pretrained(
+                model_name,
+                load_in_8bit=model_conf.get("8-bit") and bnb_available,
+                device_map="auto",
+                torch_dtype=torch.float16,
             )
 
-            processor = (
-                list_to_use[model_type].get("processor").from_pretrained(model_name)
-            )
+            processor = model_conf.get("processor").from_pretrained(model_name)
 
             if model_type == "whisper":
                 model.config.forced_decoder_ids, model.config.suppress_tokens = (
@@ -59,10 +55,10 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                 model.config.ctc_loss_reduction = "mean"
 
             if peft_name is not None:
-                if list_to_use[model_type].get("8-bit") and bnb_available:
+                if model_conf.get("8-bit") and bnb_available:
                     model = prepare_model_for_int8_training(
                         model,
-                        output_embedding_layer_name=list_to_use[model_type].get(
+                        output_embedding_layer_name=model_conf.get(
                             "output_embedding_layer_name", "lm_head"
                         ),
                     )
@@ -70,9 +66,9 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                 peft_config = LoraConfig(
                     r=8,
                     lora_alpha=64,
-                    target_modules=list_to_use[model_type].get("target_modules"),
+                    target_modules=model_conf.get("target_modules"),
                     lora_dropout=0.0,
-                    task_type=list_to_use[model_type].get("task_type", None),
+                    task_type=model_conf.get("task_type", None),
                     inference_mode=False,
                 )
 
@@ -85,6 +81,6 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                     print(e)
                     model = get_peft_model(model, peft_config)
 
-            return model, processor
+            return model, processor, model_conf
 
     raise ValueError(f"Model type for {model_name} not found in {list_to_check}")
