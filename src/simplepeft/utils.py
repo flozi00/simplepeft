@@ -3,10 +3,11 @@ import platform
 
 os = platform.system()
 
-IS_WINDOWS = (os == "Windows")
+IS_WINDOWS = os == "Windows"
 
 
 class Tasks(Enum):
     ASR = 1
     Text2Text = 2
     TEXT_GEN = 3
+    TTS = 4

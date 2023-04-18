@@ -5,6 +5,8 @@ from transformers import (
     WhisperProcessor,
     AutoModelForCTC,
     AutoProcessor,
+    SpeechT5ForTextToSpeech,
+    SpeechT5Processor,
 )
 
 SPEECH_MODELS = {
@@ -34,5 +36,20 @@ SPEECH_MODELS = {
         "processor": AutoProcessor,
         "8-bit": False,
         "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
+    },
+}
+
+TTS_MODELS = {
+    "speecht5": {
+        "class": SpeechT5ForTextToSpeech,
+        "processor": SpeechT5Processor,
+        "8-bit": False,
+        "target_modules": [
+            "k_proj",
+            "v_proj",
+            "q_proj",
+            "out_proj",
+        ],
+        "precision": 16,
     },
 }

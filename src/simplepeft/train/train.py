@@ -27,7 +27,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf:
         accelerator="gpu",
         devices=1,
         precision=model_conf.get("precision", 32),
-        accumulate_grad_batches=1,
+        accumulate_grad_batches=4,
         callbacks=[lr_monitor],
         gradient_clip_val=0.5,
     )

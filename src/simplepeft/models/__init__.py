@@ -1,4 +1,4 @@
-from ..models.speech import SPEECH_MODELS
+from ..models.speech import SPEECH_MODELS, TTS_MODELS
 from ..models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
 import torch
@@ -25,6 +25,9 @@ def get_model(task: str, model_name: str, peft_name: str = None):
     elif task == Tasks.Text2Text:
         list_to_check = list(TEXT_TEXT_MODELS.keys())
         list_to_use = TEXT_TEXT_MODELS
+    elif task == Tasks.TTS:
+        list_to_check = list(TTS_MODELS.keys())
+        list_to_use = TTS_MODELS
 
     try:
         conf = LoraConfig.from_pretrained(model_name)
@@ -42,7 +45,9 @@ def get_model(task: str, model_name: str, peft_name: str = None):
             model = model_conf.get("class").from_pretrained(
                 model_name,
                 load_in_8bit=model_conf.get("8-bit") and bnb_available,
-                device_map="auto",
+                device_map="auto"
+                if model_conf.get("8-bit") and bnb_available
+                else None,
                 torch_dtype=torch.float16,
             )
 

@@ -8,3 +8,5 @@ wandb
 lion-pytorch
 librosa
 soundfile
+unidecode
+speechbrain

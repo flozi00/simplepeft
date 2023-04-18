@@ -1,4 +1,4 @@
-from ..data.ASRCollator import ASRDataCollator
+from .AUDIOCollator import ASRDataCollator, TTSDataCollator
 from torch.utils.data import DataLoader
 from ..data.TEXTCollator import CLMDataCollator, TextTextDataCollator
 
@@ -29,12 +29,19 @@ def get_dataloader(
             text_key=kwargs.get("text_key", "text"),
             max_input_length=kwargs.get("max_input_length", 1024),
         )
+    elif task == Tasks.TTS:
+        data_collator = TTSDataCollator(
+            processor=processor,
+            reduction_factor=kwargs.get("reduction_factor", 2),
+            wav_key=kwargs.get("wav_key", ["audio", "array"]),
+            text_key=kwargs.get("text_key", "sentence"),
+            speaker_model=kwargs.get("speaker_model", None),
+        )
 
     dloader = DataLoader(
         datas,
         collate_fn=data_collator,
         batch_size=BATCH_SIZE,
-        shuffle=True,
         pin_memory=False,
         num_workers=0,
     )
