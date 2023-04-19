@@ -16,6 +16,14 @@ except ImportError:
 
 
 def get_model(task: str, model_name: str, peft_name: str = None):
+    """Get the ready to use pef model, processor and model config
+    Args: task (str): Task for the model
+        model_name (str): Name of the model
+        peft_name (str): Name of the peft model. If None, then the model_name is used
+    Returns:
+        model (Model): The ready to use model
+        processor (Processor): The processor to use with the model
+        model_conf (dict): The model config"""
     if task == Tasks.ASR:
         list_to_check = list(SPEECH_MODELS.keys())
         list_to_use = SPEECH_MODELS
@@ -29,6 +37,8 @@ def get_model(task: str, model_name: str, peft_name: str = None):
         list_to_check = list(TTS_MODELS.keys())
         list_to_use = TTS_MODELS
 
+    # check if the model_name is a peft model, if True, get the base model name from the config
+    # otherwise, dont do anything
     try:
         conf = LoraConfig.from_pretrained(model_name)
         peft_name = model_name
@@ -36,23 +46,28 @@ def get_model(task: str, model_name: str, peft_name: str = None):
     except Exception:
         pass
 
+    # get the config of the base model and extract the model type from it
     conf = AutoConfig.from_pretrained(model_name)
     model_type_by_config = conf.model_type
 
+    # check if the model_type is in the list of models
     for model_type in list_to_check:
         if model_type.lower() in model_type_by_config.lower():
+            # get the model config
             model_conf = list_to_use[model_type]
+            bnb_compatible = model_conf.get("8-bit") is True and bnb_available is True
+            # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
                 model_name,
-                load_in_8bit=model_conf.get("8-bit") and bnb_available,
-                device_map="auto"
-                if model_conf.get("8-bit") and bnb_available
-                else None,
+                load_in_8bit=bnb_compatible,
+                device_map="auto" if bnb_compatible else None,
                 torch_dtype=torch.float16,
             )
 
+            # load the processor
             processor = model_conf.get("processor").from_pretrained(model_name)
 
+            # check if the model_type is whisper or mctct and set the config accordingly
             if model_type == "whisper":
                 model.config.forced_decoder_ids, model.config.suppress_tokens = (
                     None,
@@ -61,8 +76,10 @@ def get_model(task: str, model_name: str, peft_name: str = None):
             elif model_type == "mctct":
                 model.config.ctc_loss_reduction = "mean"
 
+            # check if peft_name is not None, if True, load the peft model
             if peft_name is not None:
-                if model_conf.get("8-bit") and bnb_available:
+                # check if the model is 8-bit compatible and prepare it for 8-bit training
+                if bnb_compatible:
                     model = prepare_model_for_int8_training(
                         model,
                         output_embedding_layer_name=model_conf.get(
@@ -70,6 +87,7 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                         ),
                     )
 
+                # create the lora config
                 peft_config = LoraConfig(
                     r=8,
                     lora_alpha=64,
@@ -79,6 +97,7 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                     inference_mode=False,
                 )
 
+                # load the peft model if possible, otherwise, create it from the base model and the lora config
                 try:
                     model = PeftModel.from_pretrained(
                         model,
@@ -90,4 +109,5 @@ def get_model(task: str, model_name: str, peft_name: str = None):
 
             return model, processor, model_conf
 
+    # if the model_type is not in the list of supported models, raise an error
     raise ValueError(f"Model type for {model_name} not found in {list_to_check}")

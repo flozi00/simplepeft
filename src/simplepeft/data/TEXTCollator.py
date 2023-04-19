@@ -16,8 +16,14 @@ class TextTextDataCollator:
     def __call__(
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
     ) -> Dict[str, torch.Tensor]:
-        inputs = [f[self.source_key] for f in features]
-        outputs = [f[self.target_key] for f in features]
+        inputs = [
+            f[self.source_key] for f in features
+        ]  # list of strings (sentences) to be tokenized as inputs
+        outputs = [
+            f[self.target_key] for f in features
+        ]  # list of strings (sentences) to be tokenized as labels
+
+        # tokenize batched inputs
         model_inputs = self.tok(
             inputs,
             max_length=self.max_input_length,
@@ -25,6 +31,8 @@ class TextTextDataCollator:
             truncation=True,
             return_tensors="pt",
         ).input_ids
+
+        # tokenize batched outputs
         labels = self.tok(
             outputs,
             max_length=self.max_output_length,
@@ -33,8 +41,10 @@ class TextTextDataCollator:
             return_tensors="pt",
         ).input_ids
 
+        # replace pad_token_id with -100 to ignore loss correctly
         labels[labels == self.tok.pad_token_id] = -100
 
+        # create batch dict with inputs and labels
         batch = {
             "input_ids": model_inputs,
             "labels": labels,
@@ -51,8 +61,11 @@ class CLMDataCollator:
     def __call__(
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
     ) -> Dict[str, torch.Tensor]:
-        inputs = [f[self.text_key] for f in features]
+        inputs = [
+            f[self.text_key] for f in features
+        ]  # list of strings (sentences) to be tokenized as inputs
 
+        # tokenize batched inputs
         inputs = self.tok(
             inputs,
             max_length=self.max_input_length,
@@ -61,6 +74,7 @@ class CLMDataCollator:
             return_tensors="pt",
         ).input_ids
 
+        # create batch dict with inputs and labels where labels = inputs
         batch = {
             "input_ids": inputs,
             "labels": inputs,

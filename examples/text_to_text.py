@@ -10,7 +10,7 @@ PEFT_MODEL = "t5-large-german-lora-instructions"
 TASK = Tasks.Text2Text
 LR = 1e-5
 
-
+# generate an instruction dataset by using the instruction as prefix for the input
 def add_prefix(example):
     example["input"] = example["instruction"] + " " + example["input"]
     return example
@@ -28,6 +28,7 @@ def get_dataset():
 
 
 def main():
+    # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
         task=TASK,
         model_name=BASE_MODEL,
@@ -36,6 +37,7 @@ def main():
 
     cv_data = get_dataset()
 
+    # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(
         task=TASK,
         processor=processor,
@@ -47,8 +49,14 @@ def main():
         max_output_length=256,
     )
 
+    # start training
     start_training(
-        model=model, processor=processor, dloader=dloader, PEFT_MODEL=PEFT_MODEL, LR=LR, model_conf=model_conf
+        model=model,
+        processor=processor,
+        dloader=dloader,
+        PEFT_MODEL=PEFT_MODEL,
+        LR=LR,
+        model_conf=model_conf,
     )
 
 

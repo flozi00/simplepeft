@@ -22,8 +22,8 @@ class lightningmodel(pl.LightningModule):
         loss = outputs[0]
         self.trained += 1
 
+        # iterate over all gpus and log temperature and load, if temperature is above 74, wait 4 seconds to cool down
         gpus = GPUtil.getGPUs()
-
         for gpu_num in range(len(gpus)):
             gpu = gpus[gpu_num]
             self.log(
@@ -40,6 +40,7 @@ class lightningmodel(pl.LightningModule):
 
         self.log("train/loss", loss, prog_bar=True, on_step=True)
 
+        # save model every 1000 steps, ignoring the gradient accumulation steps
         if self.trained % 1000 == 0 and self.trained != 0:
             try:
                 self.model.push_to_hub(self.model_name)

@@ -10,6 +10,17 @@ warnings.simplefilter("ignore")
 
 
 def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict):
+    """Generating the training loop for the model, using pytorch lightning#
+    Building the lightning module and the trainer for the model automatically
+
+    Args:
+        model (_type_): The model to train, from this library
+        processor (_type_): The processor from the model
+        dloader (_type_): The pytorch dataloader
+        PEFT_MODEL (_type_): The name of the model to be saved as
+        LR (float): The learning rate
+        model_conf (dict): The model configuration from this library
+    """
     plmodel = lightningmodel(
         model_name=PEFT_MODEL,
         model=model,

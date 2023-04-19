@@ -10,7 +10,7 @@ PEFT_MODEL = "opt-1.3b-german-lora-instructions"
 TASK = Tasks.TEXT_GEN
 LR = 1e-6
 
-
+# generate an instruction dataset by using the instruction as prefix for the input and output
 def add_prefix(example):
     example["text"] = (
         example["instruction"] + " " + example["input"] + " " + example["output"]
@@ -32,6 +32,7 @@ def get_dataset():
 
 
 def main():
+    # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
         task=TASK,
         model_name=BASE_MODEL,
@@ -40,6 +41,7 @@ def main():
 
     cv_data = get_dataset()
 
+    # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(
         task=TASK,
         processor=processor,
@@ -49,6 +51,7 @@ def main():
         text_key="text",
     )
 
+    # start training
     start_training(
         model=model,
         processor=processor,

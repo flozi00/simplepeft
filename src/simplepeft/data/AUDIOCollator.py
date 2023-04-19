@@ -8,6 +8,10 @@ from transformers import AutoProcessor
 
 
 def normalize_text(text: str) -> str:
+    """Normalize the text into unidecode characters only
+    Args: text (str): Text to be normalized
+    Returns:
+        str: Normalized text"""
     couples = [
         ("ä", "ae"),
         ("ö", "oe"),
@@ -17,10 +21,13 @@ def normalize_text(text: str) -> str:
         ("Ö", "Oe"),
         ("Ü", "Ue"),
     ]
+
+    # Replace special characters with their ascii equivalent
     for couple in couples:
         text = text.replace(couple[0], f"__{couple[1]}__")
     text = unidecode(text)
 
+    # Replace the ascii equivalent with the original character after unidecode
     for couple in couples:
         text = text.replace(f"__{couple[1]}__", couple[0])
     return text
@@ -39,14 +46,17 @@ class ASRDataCollator:
         input_features = []
         label_features = []
 
+        # Extract the audio from the feature even its nested
         for feature in features:
             myaudio = feature
             for k in self.wav_key:
                 myaudio = myaudio[k]
 
+            # Extract the text from the feature and normalize it
             mytext = normalize_text(feature[self.text_key])
             mylang = feature[self.locale_key]
 
+            # Extract the audio features from the audio
             extracted = self.processor.feature_extractor(
                 myaudio,
                 sampling_rate=16000,
@@ -78,7 +88,7 @@ class ASRDataCollator:
             except Exception:
                 pass
 
-            # append to label_features
+            # append to label_features and tokenize
             label_features.append(
                 {"input_ids": self.processor.tokenizer(mytext).input_ids}
             )
@@ -114,6 +124,7 @@ class TTSDataCollator:
     text_key: str = "sentence"
 
     def create_speaker_embedding(self, waveform):
+        # Create a torch tensor from the waveform
         with torch.no_grad():
             speaker_embeddings = self.speaker_model.encode_batch(torch.tensor(waveform))
             speaker_embeddings = torch.nn.functional.normalize(
@@ -128,6 +139,7 @@ class TTSDataCollator:
 
         input_ids, label_features, speaker_features = [], [], []
 
+        # Extract the audio from the feature even its nested
         for feature in features:
             myaudio = feature
             for k in self.wav_key:
