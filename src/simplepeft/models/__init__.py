@@ -61,7 +61,9 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                 model_name,
                 load_in_8bit=bnb_compatible,
                 device_map="auto" if bnb_compatible else None,
-                torch_dtype=torch.float16,
+                torch_dtype=torch.float16
+                if model_conf.get("precision") == 16
+                else torch.float32,
             )
 
             # load the processor
@@ -95,6 +97,7 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                     lora_dropout=0.0,
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,
+                    modules_to_save=model_conf.get("modules_to_save", None),
                 )
 
                 # load the peft model if possible, otherwise, create it from the base model and the lora config

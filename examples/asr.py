@@ -6,11 +6,11 @@ from simplepeft.utils import Tasks
 import pandas as pd
 
 BATCH_SIZE = 64
-BASE_MODEL = "openai/whisper-large-v2"
-PEFT_MODEL = "whisper-large-v2-german-lora-cv13-simplepeft"
+BASE_MODEL = "openai/whisper-small"
+PEFT_MODEL = "whisper-small-german-lora-cv13"
 TASK = Tasks.ASR
 LR = 1e-5
-CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
+CV_DATA_PATH = "../cv-corpus-13.0-2023-03-09/de/"
 
 # generate the dataset from the common voice dataset saved locally and load it as a dataset object
 # the dataset is filtered to only contain sentences with more than 5 characters and at least 2 upvotes and no downvotes

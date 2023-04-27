@@ -1,5 +1,4 @@
 from transformers import (
-    BloomForCausalLM,
     AutoModelForCausalLM,
     AutoTokenizer,
     T5ForConditionalGeneration,
@@ -21,14 +20,7 @@ TEXT_GEN_MODELS = {
         "class": AutoModelForCausalLM,
         "processor": AutoTokenizer,
         "8-bit": False,
-        "target_modules": [
-            "k_proj",
-            "v_proj",
-            "q_proj",
-            "out_proj",
-            "fc1",
-            "fc2",
-        ],
+        "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
         "task_type": TaskType.CAUSAL_LM,
         "precision": 16,
     },

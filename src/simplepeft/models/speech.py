@@ -1,6 +1,4 @@
 from transformers import (
-    MCTCTForCTC,
-    MCTCTProcessor,
     WhisperForConditionalGeneration,
     WhisperProcessor,
     AutoModelForCTC,
@@ -10,12 +8,6 @@ from transformers import (
 )
 
 SPEECH_MODELS = {
-    "mctct": {
-        "class": MCTCTForCTC,
-        "processor": MCTCTProcessor,
-        "8-bit": False,
-        "target_modules": ["query", "value"],
-    },
     "whisper": {
         "class": WhisperForConditionalGeneration,
         "processor": WhisperProcessor,
@@ -25,8 +17,6 @@ SPEECH_MODELS = {
             "v_proj",
             "q_proj",
             "out_proj",
-            "fc1",
-            "fc2",
         ],
         "output_embedding_layer_name": "proj_out",
         "precision": 16,

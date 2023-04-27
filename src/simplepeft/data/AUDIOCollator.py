@@ -52,6 +52,9 @@ class ASRDataCollator:
             for k in self.wav_key:
                 myaudio = myaudio[k]
 
+            if len(myaudio) / 16000 > 20:
+                continue
+
             # Extract the text from the feature and normalize it
             mytext = normalize_text(feature[self.text_key])
             mylang = feature[self.locale_key]
