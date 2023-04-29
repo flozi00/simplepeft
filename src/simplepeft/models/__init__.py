@@ -78,6 +78,10 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
             elif model_type == "mctct":
                 model.config.ctc_loss_reduction = "mean"
 
+            if processor.pad_token is None:
+                processor.add_special_tokens({"pad_token": "[PAD]"})
+                model.resize_token_embeddings(len(processor))
+
             # check if peft_name is not None, if True, load the peft model
             if peft_name is not None:
                 # check if the model is 8-bit compatible and prepare it for 8-bit training

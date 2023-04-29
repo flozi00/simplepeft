@@ -12,3 +12,4 @@ unidecode
 speechbrain
 sentencepiece
 bitsandbytes==0.37.0
+deepspeed

@@ -1,15 +1,23 @@
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import LearningRateMonitor
 from lightning.pytorch.loggers import WandbLogger
+from lion_pytorch import Lion
 
 from ..train.model import lightningmodel
 
 import warnings
 
+try:
+    from deepspeed.ops.adam import DeepSpeedCPUAdam
+
+    optim = DeepSpeedCPUAdam
+except ImportError:
+    optim = Lion
+
 warnings.simplefilter("ignore")
 
 
-def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict):
+def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict, deepspeed: bool = False):
     """Generating the training loop for the model, using pytorch lightning#
     Building the lightning module and the trainer for the model automatically
 
@@ -25,6 +33,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf:
         model_name=PEFT_MODEL,
         model=model,
         processor=processor,
+        optim=optim,
         lr=LR,
     )
 
@@ -35,11 +44,10 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf:
     trainer = pl.Trainer(
         logger=_logger,
         log_every_n_steps=1,
-        accelerator="gpu",
-        devices=1,
         precision=model_conf.get("precision", 32),
         accumulate_grad_batches=model_conf.get("gradient_accumulation", 1),
         callbacks=[lr_monitor],
         gradient_clip_val=0.5,
+        strategy="auto" if deepspeed is False else "deepspeed_stage_2_offload",
     )
     trainer.fit(model=plmodel, train_dataloaders=dloader)

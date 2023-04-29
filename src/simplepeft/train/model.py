@@ -2,17 +2,17 @@ from torch.optim.lr_scheduler import ExponentialLR
 import lightning.pytorch as pl
 import GPUtil
 import time
-from lion_pytorch import Lion
 
 
 class lightningmodel(pl.LightningModule):
-    def __init__(self, model_name, model, processor, lr=1e-5):
+    def __init__(self, model_name, model, processor, optim, lr=1e-5):
         super().__init__()
         self.model_name = model_name
         self.model = model
         self.processor = processor
         self.lr = lr
         self.trained = 0
+        self.optim = optim
 
     def forward(self, **inputs):
         return self.model(**inputs)
@@ -44,14 +44,16 @@ class lightningmodel(pl.LightningModule):
         if self.trained % 1000 == 0 and self.trained != 0:
             try:
                 self.model.push_to_hub(self.model_name)
+                self.processor.push_to_hub(self.model_name)
             except Exception as e:
                 print(e)
             self.model.save_pretrained(self.model_name)
+            self.processor.save_pretrained(self.model_name)
 
         return loss
 
     def configure_optimizers(self):
-        optimizer = Lion(self.parameters(), lr=self.lr)
+        optimizer = self.optim(self.parameters(), lr=self.lr)
         scheduler = ExponentialLR(
             optimizer=optimizer,
             gamma=0.99999,

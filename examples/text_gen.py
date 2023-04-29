@@ -4,11 +4,11 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 BASE_MODEL = "sgugger/rwkv-430M-pile"
-PEFT_MODEL = "rwkv-430M-german-lora-instructions"
+PEFT_MODEL = "rwkv-430M-german-instructions"
 TASK = Tasks.TEXT_GEN
-LR = 1e-6
+LR = 1e-5
 
 # generate an instruction dataset by using the instruction as prefix for the input and output
 def add_prefix(example):
@@ -57,6 +57,7 @@ def main():
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         model_conf=model_conf,
+        deepspeed=True,
     )
 
 
