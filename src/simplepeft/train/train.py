@@ -7,17 +7,21 @@ from ..train.model import lightningmodel
 
 import warnings
 
-try:
-    from deepspeed.ops.adam import DeepSpeedCPUAdam
-
-    optim = DeepSpeedCPUAdam
-except ImportError:
-    optim = Lion
+from deepspeed.ops.adam import DeepSpeedCPUAdam
+from lightning.pytorch.strategies import DeepSpeedStrategy
 
 warnings.simplefilter("ignore")
 
 
-def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict, deepspeed: bool = False):
+def start_training(
+    model,
+    processor,
+    dloader,
+    PEFT_MODEL,
+    LR: float,
+    model_conf: dict,
+    deepspeed: bool = False,
+):
     """Generating the training loop for the model, using pytorch lightning#
     Building the lightning module and the trainer for the model automatically
 
@@ -33,7 +37,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf:
         model_name=PEFT_MODEL,
         model=model,
         processor=processor,
-        optim=optim,
+        optim=Lion if deepspeed is False else DeepSpeedCPUAdam,
         lr=LR,
     )
 
@@ -41,13 +45,25 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, model_conf:
 
     lr_monitor = LearningRateMonitor(logging_interval="step")
 
+    strategy = DeepSpeedStrategy(
+        offload_optimizer=True,
+        offload_parameters=True,
+        offload_optimizer_device="cpu",
+        offload_params_device="cpu",
+        zero_optimization=True,
+        stage=2,
+    )
+
+    if deepspeed is False:
+        strategy = "auto"
+
     trainer = pl.Trainer(
         logger=_logger,
         log_every_n_steps=1,
-        precision=model_conf.get("precision", 32),
+        precision=16,
         accumulate_grad_batches=model_conf.get("gradient_accumulation", 1),
         callbacks=[lr_monitor],
         gradient_clip_val=0.5,
-        strategy="auto" if deepspeed is False else "deepspeed_stage_2_offload",
+        strategy=strategy,
     )
     trainer.fit(model=plmodel, train_dataloaders=dloader)

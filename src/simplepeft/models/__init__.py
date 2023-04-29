@@ -55,15 +55,14 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
         if model_type.lower() in model_type_by_config.lower():
             # get the model config
             model_conf = list_to_use[model_type]
-            bnb_compatible = model_conf.get("8-bit") is True and bnb_available is True
+            bnb_compatible = (
+                model_conf.get("8-bit") is True
+                and bnb_available is True
+                and use_peft is True
+            )
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
-                model_name,
-                load_in_8bit=bnb_compatible,
-                device_map="auto" if bnb_compatible else None,
-                torch_dtype=torch.float16
-                if model_conf.get("precision") == 16
-                else torch.float32,
+                model_name, load_in_8bit=bnb_compatible, device_map="auto"
             )
 
             # load the processor
@@ -78,9 +77,14 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
             elif model_type == "mctct":
                 model.config.ctc_loss_reduction = "mean"
 
-            if processor.pad_token is None:
-                processor.add_special_tokens({"pad_token": "[PAD]"})
-                model.resize_token_embeddings(len(processor))
+            try:
+                if processor.pad_token is None:
+                    processor.add_special_tokens({"pad_token": "[PAD]"})
+                    model.resize_token_embeddings(len(processor))
+            except:
+                if processor.tokenizer.pad_token is None:
+                    processor.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+                    model.resize_token_embeddings(len(processor.tokenizer))
 
             # check if peft_name is not None, if True, load the peft model
             if peft_name is not None:

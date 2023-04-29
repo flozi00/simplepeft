@@ -4,7 +4,7 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 4
+BATCH_SIZE = 12
 BASE_MODEL = "sgugger/rwkv-430M-pile"
 PEFT_MODEL = "rwkv-430M-german-instructions"
 TASK = Tasks.TEXT_GEN
@@ -45,7 +45,7 @@ def main():
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=1024,
+        max_input_length=512,
         text_key="text",
     )
 
