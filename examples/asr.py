@@ -41,14 +41,14 @@ def get_dataset():
 
 
 def main():
+    cv_data = get_dataset()
+
     # get the model, processor and model_conf by configuration
     model, processor, model_conf = get_model(
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
     )
-
-    cv_data = get_dataset()
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
     # check the **kwargs in the get_dataloader function in simplepeft/data/main.py for more information

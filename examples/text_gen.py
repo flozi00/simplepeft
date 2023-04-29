@@ -5,8 +5,8 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
-BASE_MODEL = "facebook/opt-1.3b"
-PEFT_MODEL = "opt-1.3b-german-lora-instructions"
+BASE_MODEL = "sgugger/rwkv-430M-pile"
+PEFT_MODEL = "rwkv-430M-german-lora-instructions"
 TASK = Tasks.TEXT_GEN
 LR = 1e-6
 
@@ -34,9 +34,7 @@ def get_dataset():
 def main():
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
-        task=TASK,
-        model_name=BASE_MODEL,
-        peft_name=PEFT_MODEL,
+        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=False
     )
 
     cv_data = get_dataset()

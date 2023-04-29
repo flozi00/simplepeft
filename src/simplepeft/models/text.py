@@ -19,9 +19,19 @@ TEXT_GEN_MODELS = {
     "opt": {
         "class": AutoModelForCausalLM,
         "processor": AutoTokenizer,
-        "8-bit": False,
+        "8-bit": True,
         "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
         "task_type": TaskType.CAUSAL_LM,
         "precision": 16,
+        "gradient_accumulation": 4,
+    },
+    "rwkv": {
+        "class": AutoModelForCausalLM,
+        "processor": AutoTokenizer,
+        "8-bit": False,
+        "target_modules": ["key", "value", "receptance", "output"],
+        "task_type": TaskType.CAUSAL_LM,
+        "precision": 32,
+        "gradient_accumulation": 4,
     },
 }

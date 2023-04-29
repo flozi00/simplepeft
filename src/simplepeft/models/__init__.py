@@ -15,7 +15,7 @@ except ImportError:
     bnb_available = False
 
 
-def get_model(task: str, model_name: str, peft_name: str = None):
+def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
     """Get the ready to use pef model, processor and model config
     Args: task (str): Task for the model
         model_name (str): Name of the model
@@ -106,11 +106,16 @@ def get_model(task: str, model_name: str, peft_name: str = None):
                         model,
                         peft_name,
                     )
+                    if use_peft is False:
+                        model = model.merge_and_unload()
                 except Exception as e:
                     print(e)
-                    model = get_peft_model(model, peft_config)
+                    if use_peft:
+                        model = get_peft_model(model, peft_config)
 
             return model, processor, model_conf
 
     # if the model_type is not in the list of supported models, raise an error
-    raise ValueError(f"Model type for {model_name} not found in {list_to_check}")
+    raise ValueError(
+        f"Model type for {model_name} not found in {list_to_check}, missing {model_type_by_config}"
+    )

@@ -1,6 +1,6 @@
 transformers>=4.28.1
 datasets
-peft
+https://github.com/huggingface/peft/archive/refs/heads/main.zip
 lightning==2.0.1
 accelerate
 gputil
@@ -11,3 +11,4 @@ soundfile
 unidecode
 speechbrain
 sentencepiece
+bitsandbytes==0.37.0

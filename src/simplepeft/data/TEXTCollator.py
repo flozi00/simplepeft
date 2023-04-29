@@ -56,7 +56,7 @@ class CLMDataCollator:
         inputs = self.tok(
             inputs,
             max_length=self.max_input_length,
-            padding="max_length",
+            padding="max_length" if self.tok.pad_token is not None else False,
             truncation=True,
             return_tensors="pt",
         ).input_ids
