@@ -133,3 +133,7 @@ wandb
 *-lora-*
 cv-*
 *models*
+
+*.json
+*.bin
+huggingface/
