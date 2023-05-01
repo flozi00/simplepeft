@@ -36,7 +36,7 @@ class lightningmodel(pl.LightningModule):
                 f"train/gpu_load_{gpu_num}", gpu.memoryUtil, prog_bar=True, on_step=True
             )
             if gpu.temperature >= 74:
-                time.sleep(4)
+                time.sleep(20)
 
         self.log("train/loss", loss, prog_bar=True, on_step=True)
 

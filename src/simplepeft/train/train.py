@@ -32,6 +32,7 @@ def start_training(
         PEFT_MODEL (_type_): The name of the model to be saved as
         LR (float): The learning rate
         model_conf (dict): The model configuration from this library
+        deepspeed (bool, optional): Whether to use deepspeed or not. Defaults to False.
     """
     plmodel = lightningmodel(
         model_name=PEFT_MODEL,

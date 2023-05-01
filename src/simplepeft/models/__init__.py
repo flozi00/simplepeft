@@ -62,7 +62,9 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
             )
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
-                model_name, load_in_8bit=bnb_compatible, device_map="auto"
+                model_name,
+                load_in_8bit=bnb_compatible,
+                device_map="auto" if bnb_compatible else None,
             )
 
             # load the processor
