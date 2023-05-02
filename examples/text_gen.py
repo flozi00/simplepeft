@@ -6,8 +6,8 @@ from simplepeft.utils import Tasks
 import pandas as pd
 
 BATCH_SIZE = 1
-BASE_MODEL = "sgugger/rwkv-430M-pile"
-PEFT_MODEL = "rwkv-430M-german-instructions"
+BASE_MODEL = "OpenAssistant/stablelm-7b-sft-v7-epoch-3"
+PEFT_MODEL = "stablelm-7b-german-instructions"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
@@ -31,7 +31,9 @@ def get_dataset():
         parent_id = parent_ids[i]
         text = texts[i]
         role = roles[i]
-        new_data = ("<human>: " if role == "prompter" else "<bot>: ") + text
+        new_data = (
+            "<|prompter|>" if role == "prompter" else "<|endoftext|><|assistant|>"
+        ) + text
         entry = dict(
             message_id=message_id, parent_id=parent_id, text=new_data, lang=langs[i]
         )
@@ -107,7 +109,7 @@ def get_dataset():
 def main():
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
-        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=False
+        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=True
     )
 
     cv_data = get_dataset()
@@ -130,7 +132,7 @@ def main():
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         model_conf=model_conf,
-        deepspeed=True,
+        deepspeed=False,
     )
 
 
