@@ -32,6 +32,15 @@ TEXT_GEN_MODELS = {
         "target_modules": ["key", "value", "receptance", "output"],
         "task_type": TaskType.CAUSAL_LM,
         "precision": 32,
+        "gradient_accumulation": 1,
+    },
+    "gpt_neox": {
+        "class": AutoModelForCausalLM,
+        "processor": AutoTokenizer,
+        "8-bit": True,
+        "target_modules": ["query_key_value"],
+        "task_type": TaskType.CAUSAL_LM,
+        "precision": 16,
         "gradient_accumulation": 4,
     },
 }

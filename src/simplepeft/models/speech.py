@@ -26,6 +26,7 @@ SPEECH_MODELS = {
         "processor": AutoProcessor,
         "8-bit": False,
         "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
+        "precision": 16,
     },
 }
 
