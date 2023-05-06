@@ -20,7 +20,6 @@ def start_training(
     PEFT_MODEL,
     LR: float,
     model_conf: dict,
-    deepspeed: bool = False,
 ):
     """Generating the training loop for the model, using pytorch lightning#
     Building the lightning module and the trainer for the model automatically
@@ -32,8 +31,8 @@ def start_training(
         PEFT_MODEL (_type_): The name of the model to be saved as
         LR (float): The learning rate
         model_conf (dict): The model configuration from this library
-        deepspeed (bool, optional): Whether to use deepspeed or not. Defaults to False.
     """
+    deepspeed = model_conf.get("is8bit", False) is False
     plmodel = lightningmodel(
         model_name=PEFT_MODEL,
         model=model,
@@ -53,6 +52,13 @@ def start_training(
         offload_params_device="cpu",
         zero_optimization=True,
         stage=2,
+        cpu_checkpointing=True,
+        allgather_partitions=True,
+        allgather_bucket_size=2e8,
+        reduce_scatter=True,
+        reduce_bucket_size=2e8,
+        overlap_comm=True,
+        contiguous_gradients=True,
     )
 
     if deepspeed is False:

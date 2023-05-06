@@ -1,7 +1,6 @@
 from ..models.speech import SPEECH_MODELS, TTS_MODELS
 from ..models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
-import torch
 from transformers import AutoConfig
 
 from ..utils import Tasks
@@ -81,12 +80,10 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
 
             try:
                 if processor.pad_token is None:
-                    processor.add_special_tokens({"pad_token": "[PAD]"})
-                    model.resize_token_embeddings(len(processor))
+                    processor.pad_token = processor.eos_token
             except:
                 if processor.tokenizer.pad_token is None:
-                    processor.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
-                    model.resize_token_embeddings(len(processor.tokenizer))
+                    processor.tokenizer.pad_token = processor.tokenizer.eos_token
 
             # check if peft_name is not None, if True, load the peft model
             if peft_name is not None:
@@ -123,6 +120,7 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
                     if use_peft:
                         model = get_peft_model(model, peft_config)
 
+            model_conf["is8bit"] = bnb_compatible
             return model, processor, model_conf
 
     # if the model_type is not in the list of supported models, raise an error

@@ -6,10 +6,10 @@ from simplepeft.utils import Tasks
 import pandas as pd
 
 BATCH_SIZE = 1
-BASE_MODEL = "OpenAssistant/stablelm-7b-sft-v7-epoch-3"
-PEFT_MODEL = "stablelm-7b-german-instructions"
+BASE_MODEL = "RWKV/rwkv-raven-3b"
+PEFT_MODEL = "rwkv-4-3b-german-assistant"
 TASK = Tasks.TEXT_GEN
-LR = 1e-5
+LR = 1e-4
 
 
 def get_dataset():
@@ -31,9 +31,7 @@ def get_dataset():
         parent_id = parent_ids[i]
         text = texts[i]
         role = roles[i]
-        new_data = (
-            "<|prompter|>" if role == "prompter" else "<|endoftext|><|assistant|>"
-        ) + text
+        new_data = ("<|prompter|>" if role == "prompter" else "<|assistant|>") + text
         entry = dict(
             message_id=message_id, parent_id=parent_id, text=new_data, lang=langs[i]
         )
@@ -99,7 +97,16 @@ def get_dataset():
         for c in conversations:
             if c["lang"] == "de":
                 all_rows.append(c["text"])
-        print(len(all_rows))
+
+    ds2 = datasets.load_dataset(
+        "philschmid/translated_tasks_de_google_52k", split="train"
+    )
+    for row in ds2:
+        all_rows.append(
+            f"<|prompter|>{row['instruction']} {row['input']}<|assistant|>{row['output']}"
+        )
+
+    print(len(all_rows))
 
     ds = datasets.Dataset.from_dict({"text": all_rows})
 
@@ -109,7 +116,7 @@ def get_dataset():
 def main():
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
-        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=True
+        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=False
     )
 
     cv_data = get_dataset()
@@ -120,7 +127,7 @@ def main():
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=4096,
+        max_input_length=2048,
         text_key="text",
     )
 
@@ -132,7 +139,6 @@ def main():
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         model_conf=model_conf,
-        deepspeed=False,
     )
 
 

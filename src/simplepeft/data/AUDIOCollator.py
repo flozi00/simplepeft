@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Union
+import librosa
 from unidecode import unidecode
 import torch
 
@@ -46,14 +47,17 @@ class ASRDataCollator:
         input_features = []
         label_features = []
 
-        # Extract the audio from the feature even its nested
-        for feature in features:
+        for i in range(len(features)):
+            feature = features[i]
             myaudio = feature
+            # Extract the audio from the feature even its nested
             for k in self.wav_key:
                 myaudio = myaudio[k]
 
-            if len(myaudio) / 16000 > 20:
-                continue
+            if len(myaudio) / 16000 > 30:
+                librosa.effects.time_stretch(
+                    myaudio, rate=int(len(myaudio) / (16000 * 30))
+                )
 
             # Extract the text from the feature and normalize it
             mytext = normalize_text(feature[self.text_key])
@@ -139,7 +143,6 @@ class TTSDataCollator:
     def __call__(
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
     ) -> Dict[str, torch.Tensor]:
-
         input_ids, label_features, speaker_features = [], [], []
 
         # Extract the audio from the feature even its nested

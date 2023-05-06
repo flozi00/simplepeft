@@ -5,12 +5,13 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 64
+BATCH_SIZE = 16
 BASE_MODEL = "openai/whisper-small"
-PEFT_MODEL = "whisper-small-german-lora-cv13"
+PEFT_MODEL = "whisper-small-german-cv13-simplepeft"
 TASK = Tasks.ASR
 LR = 1e-5
 CV_DATA_PATH = "../cv-corpus-13.0-2023-03-09/de/"
+
 
 # generate the dataset from the common voice dataset saved locally and load it as a dataset object
 # the dataset is filtered to only contain sentences with more than 5 characters and at least 2 upvotes and no downvotes
@@ -48,6 +49,7 @@ def main():
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
+        use_peft=False,
     )
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
