@@ -11,16 +11,16 @@ class lightningmodel(pl.LightningModule):
         self.model = model
         self.processor = processor
         self.lr = lr
-        self.trained = 0
         self.optim = optim
+        self.start_time = time.time()
 
     def forward(self, **inputs):
         return self.model(**inputs)
 
     def training_step(self, batch, batch_idx):
+        elapsed_time = time.time() - self.start_time
         outputs = self(**batch)
         loss = outputs[0]
-        self.trained += 1
 
         # iterate over all gpus and log temperature and load, if temperature is above 74, wait 4 seconds to cool down
         gpus = GPUtil.getGPUs()
@@ -40,8 +40,9 @@ class lightningmodel(pl.LightningModule):
 
         self.log("train/loss", loss, prog_bar=True, on_step=True)
 
-        # save model every 1000 steps, ignoring the gradient accumulation steps
-        if self.trained % 1000 == 0 and self.trained != 0:
+        # push to hub every X hours
+        if elapsed_time > (60 * 60 * 6):  # 6 hours (60 seconds * 60 minutes * 6 hours)
+            self.start_time = time.time()
             try:
                 self.model.push_to_hub(self.model_name)
                 self.processor.push_to_hub(self.model_name)

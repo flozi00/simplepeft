@@ -133,6 +133,7 @@ wandb
 *-lora-*
 cv-*
 *models*
+merges*
 
 *.json
 *.bin
