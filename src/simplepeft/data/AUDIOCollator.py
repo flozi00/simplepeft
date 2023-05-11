@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import random
 from typing import Dict, List, Union
 import librosa
 from unidecode import unidecode
@@ -6,6 +7,8 @@ import torch
 
 from ..languages import LANGUAGES
 from transformers import AutoProcessor
+import datasets
+import numpy as np
 
 
 def normalize_text(text: str) -> str:
@@ -40,6 +43,45 @@ class ASRDataCollator:
     wav_key: list = field(default_factory=list)
     locale_key: str = "locale"
     text_key: str = "sentence"
+    special_audios = datasets.concatenate_datasets(
+        [
+            datasets.load_dataset(
+                "flozi00/VocalSound_audio_16k", split="train"
+            ).cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
+            datasets.load_dataset("ashraq/esc50", split="train")
+            .remove_columns(["filename", "fold", "esc10", "src_file", "take", "target"])
+            .rename_column("category", "label")
+            .cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
+        ]
+    )
+
+    def augment(self, feature):
+        special = self.special_audios[random.randint(0, len(self.special_audios) - 1)]
+        special2 = self.special_audios[random.randint(0, len(self.special_audios) - 1)]
+
+        myaudio = feature
+        for k in self.wav_key:
+            myaudio = myaudio[k]
+
+        mode = random.randint(0, 20)
+        if mode < 4:  # text, special
+            new_audio = np.concatenate((myaudio, special["audio"]["array"]))
+            new_text = f"{feature[self.text_key]} !{special['label'].upper()}!"
+        elif mode < 8:  # special, text
+            new_audio = np.concatenate((special["audio"]["array"], myaudio))
+            new_text = f"!{special['label'].upper()}! {feature[self.text_key]}"
+        elif mode < 12:  # special, text, special
+            new_audio = np.concatenate(
+                (special["audio"]["array"], myaudio, special2["audio"]["array"])
+            )
+            new_text = f"!{special['label'].upper()}! {feature[self.text_key]} !{special2['label'].upper()}!"
+        else:
+            new_audio = np.concatenate(
+                (special["audio"]["array"], special2["audio"]["array"])
+            )
+            new_text = f"!{special['label'].upper()}! !{special2['label'].upper()}!"
+
+        return new_audio, new_text
 
     def __call__(
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
@@ -49,18 +91,15 @@ class ASRDataCollator:
 
         for i in range(len(features)):
             feature = features[i]
-            myaudio = feature
-            # Extract the audio from the feature even its nested
-            for k in self.wav_key:
-                myaudio = myaudio[k]
 
-            if len(myaudio) / 16000 > 30:
-                librosa.effects.time_stretch(
-                    myaudio, rate=int(len(myaudio) / (16000 * 30))
-                )
+            myaudio, mytext = self.augment(feature)
+
+            rate = int((len(myaudio) / 16000) / 29)
+            if rate > 1:
+                librosa.effects.time_stretch(myaudio, rate=rate)
 
             # Extract the text from the feature and normalize it
-            mytext = normalize_text(feature[self.text_key])
+            mytext = normalize_text(mytext)
             mylang = feature[self.locale_key]
 
             # Extract the audio features from the audio

@@ -89,11 +89,9 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
             if peft_name is not None:
                 # check if the model is 8-bit compatible and prepare it for 8-bit training
                 if bnb_compatible:
+                    print("Preparing model for 8-bit training")
                     model = prepare_model_for_int8_training(
                         model,
-                        output_embedding_layer_name=model_conf.get(
-                            "output_embedding_layer_name", "lm_head"
-                        ),
                     )
 
                 # create the lora config
@@ -113,11 +111,16 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
                         model,
                         peft_name,
                     )
+                    print("Loaded peft model")
                     if use_peft is False:
-                        model = model.merge_and_unload()
+                        try:
+                            model = model.merge_and_unload()
+                            print("Merged peft model to base model format")
+                        except Exception as e:
+                            print(e)
                 except Exception as e:
-                    print(e)
                     if use_peft:
+                        print("Creating peft model")
                         model = get_peft_model(model, peft_config)
 
             model_conf["is8bit"] = bnb_compatible

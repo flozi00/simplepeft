@@ -5,7 +5,9 @@ import time
 
 
 class lightningmodel(pl.LightningModule):
-    def __init__(self, model_name, model, processor, optim, lr=1e-5):
+    def __init__(
+        self, model_name, model, processor, optim, lr=1e-5, save_every_hours=6
+    ):
         super().__init__()
         self.model_name = model_name
         self.model = model
@@ -13,6 +15,7 @@ class lightningmodel(pl.LightningModule):
         self.lr = lr
         self.optim = optim
         self.start_time = time.time()
+        self.save_every_hours = save_every_hours
 
     def forward(self, **inputs):
         return self.model(**inputs)
@@ -40,16 +43,20 @@ class lightningmodel(pl.LightningModule):
 
         self.log("train/loss", loss, prog_bar=True, on_step=True)
 
+        if batch_idx % (100 * self.save_every_hours) == 0 and batch_idx != 0:
+            self.model.save_pretrained(self.model_name)
+            self.processor.save_pretrained(self.model_name)
+
         # push to hub every X hours
-        if elapsed_time > (60 * 60 * 6):  # 6 hours (60 seconds * 60 minutes * 6 hours)
+        if elapsed_time > (
+            60 * 60 * self.save_every_hours
+        ):  # 6 hours (60 seconds * 60 minutes * hours)
             self.start_time = time.time()
             try:
                 self.model.push_to_hub(self.model_name)
                 self.processor.push_to_hub(self.model_name)
             except Exception as e:
                 print(e)
-            self.model.save_pretrained(self.model_name)
-            self.processor.save_pretrained(self.model_name)
 
         return loss
 

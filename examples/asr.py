@@ -5,9 +5,9 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 16
-BASE_MODEL = "openai/whisper-small"
-PEFT_MODEL = "whisper-small-german-cv13-simplepeft"
+BATCH_SIZE = 64
+BASE_MODEL = "openai/whisper-large-v2"
+PEFT_MODEL = "whisper-large-german-cv13-sounds"
 TASK = Tasks.ASR
 LR = 1e-5
 CV_DATA_PATH = "../cv-corpus-13.0-2023-03-09/de/"
@@ -49,7 +49,7 @@ def main():
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
-        use_peft=False,
+        use_peft=True,
     )
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified

@@ -18,6 +18,7 @@ SPEECH_MODELS = {
             "q_proj",
             "out_proj",
         ],
+        # "modules_to_save": ["embed_tokens"],
         "output_embedding_layer_name": "proj_out",
         "precision": 16,
     },

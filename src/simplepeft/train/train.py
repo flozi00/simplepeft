@@ -39,6 +39,7 @@ def start_training(
         processor=processor,
         optim=Lion if deepspeed is False else DeepSpeedCPUAdam,
         lr=LR,
+        save_every_hours=1 if deepspeed is False else 6,
     )
 
     _logger = WandbLogger(project="huggingface", name=PEFT_MODEL)
