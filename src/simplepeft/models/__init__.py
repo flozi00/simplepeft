@@ -110,6 +110,7 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
                     model = PeftModel.from_pretrained(
                         model,
                         peft_name,
+                        is_trainable=True,
                     )
                     print("Loaded peft model")
                     if use_peft is False:
