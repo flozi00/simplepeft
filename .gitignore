@@ -139,3 +139,4 @@ merges*
 *.bin
 huggingface/
 offload/
+*.model

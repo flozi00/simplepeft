@@ -14,7 +14,9 @@ except ImportError:
     bnb_available = False
 
 
-def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
+def get_model(
+    task: str, model_name: str, peft_name: str = None, use_peft=True, push_to_hub=False
+):
     """Get the ready to use pef model, processor and model config
     Args: task (str): Task for the model
         model_name (str): Name of the model
@@ -96,10 +98,10 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=8,
+                    r=32,
                     lora_alpha=64,
                     target_modules=model_conf.get("target_modules"),
-                    lora_dropout=0.0,
+                    lora_dropout=0.01,
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,
                     modules_to_save=model_conf.get("modules_to_save", None),
@@ -123,6 +125,9 @@ def get_model(task: str, model_name: str, peft_name: str = None, use_peft=True):
                     if use_peft:
                         print("Creating peft model")
                         model = get_peft_model(model, peft_config)
+
+            if push_to_hub:
+                model.push_to_hub(model_name.split("/")[-1])
 
             model_conf["is8bit"] = bnb_compatible
             return model, processor, model_conf

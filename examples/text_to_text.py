@@ -4,41 +4,40 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 1
+BATCH_SIZE = 24
 BASE_MODEL = "t5-large"
-PEFT_MODEL = "t5-large-german-lora-instructions"
+PEFT_MODEL = "t5-large-german-instructions"
 TASK = Tasks.Text2Text
-LR = 1e-5
-
-
-# generate an instruction dataset by using the instruction as prefix for the input
-def add_prefix(example):
-    example["prompt"] = example["instruction"] + "\n" + example["input"]
-    example["target"] = example["output"]
-    return example
+LR = 1e-3
 
 
 def map_to_ds(example):
-    example["prompt"] = example["instruction"] + "\n" + example["context"]
+    example[
+        "prompt"
+    ] = f'prompt: {example["instruction"]} </s> context: {example["context"]}'
     example["target"] = example["response"]
 
     return example
 
 
 def get_dataset():
-    ds = datasets.load_dataset(
-        "philschmid/translated_tasks_de_google_52k", split="train"
-    )
-    ds = ds.map(add_prefix, remove_columns=ds.column_names)
+    ds_batch = []
+    for x in ["de", "en", "es", "fr"]:
+        ds = datasets.load_dataset(
+            "argilla/databricks-dolly-15k-curated-multilingual", split=x
+        )
+        ds = ds.filter(
+            lambda x: x["category"]
+            in [
+                "information_extraction",
+                "closed_qa",
+            ]
+        )
 
-    ds2 = datasets.load_dataset(
-        "argilla/databricks-dolly-15k-curated-multilingual", split="de"
-    )
-    ds2 = ds2.map(map_to_ds, remove_columns=ds2.column_names)
+        ds = ds.map(map_to_ds, remove_columns=ds.column_names)
+        ds_batch.append(ds)
 
-    ds = datasets.concatenate_datasets([ds, ds2])
-
-    ds = ds.filter(lambda x: len(x["prompt"]) > 128)
+    ds = datasets.concatenate_datasets(ds_batch)
 
     return ds
 
@@ -61,8 +60,8 @@ def main():
         BATCH_SIZE=BATCH_SIZE,
         source_key="prompt",
         target_key="target",
-        max_input_length=4096,
-        max_output_length=512,
+        max_input_length=1024,
+        max_output_length=256,
     )
 
     # start training

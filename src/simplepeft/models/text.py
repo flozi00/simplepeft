@@ -12,6 +12,7 @@ TEXT_TEXT_MODELS = {
         "8-bit": True,
         "target_modules": ["q", "v"],
         "task_type": TaskType.SEQ_2_SEQ_LM,
+        "gradient_accumulation": 1,
     },
 }
 
@@ -32,7 +33,7 @@ TEXT_GEN_MODELS = {
         "target_modules": ["key", "value", "receptance", "output"],
         "task_type": TaskType.CAUSAL_LM,
         "precision": 32,
-        "gradient_accumulation": 1,
+        "gradient_accumulation": 4,
     },
     "gpt_neox": {
         "class": AutoModelForCausalLM,

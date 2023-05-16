@@ -64,6 +64,6 @@ class lightningmodel(pl.LightningModule):
         optimizer = self.optim(self.parameters(), lr=self.lr)
         scheduler = ExponentialLR(
             optimizer=optimizer,
-            gamma=0.99999,
+            gamma=0.9999,
         )
         return {"optimizer": optimizer, "lr_scheduler": scheduler}

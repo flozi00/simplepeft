@@ -26,15 +26,22 @@ class TextTextDataCollator:
         # tokenize batched inputs
         model_inputs = self.tok(
             inputs,
-            text_target=outputs,
             max_length=self.max_input_length,
             padding="max_length",
             truncation=True,
             return_tensors="pt",
         )
 
-        # replace pad_token_id with -100 to ignore loss correctly
-        model_inputs["labels"][model_inputs["labels"] == self.tok.pad_token_id] = -100
+        labels = self.tok(
+            outputs,
+            max_length=self.max_output_length,
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt",
+        )
+        labels = labels["input_ids"]
+        labels[labels == self.tok.pad_token_id] = -100
+        model_inputs["labels"] = labels
 
         return model_inputs
 
