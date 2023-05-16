@@ -15,11 +15,12 @@
 from setuptools import find_packages, setup
 
 with open("requirements.txt") as f:
-    required = f.read().splitlines()
+    required = [line.strip() for line in f.read() if line]
 
 setup(
     name="simplepeft",
     version="0.0.1.dev0",
+    description="simple parameter efficient finetuning based on huggingface ecosystem and lightning trainer",
     license_files=["LICENSE"],
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
