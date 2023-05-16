@@ -26,7 +26,5 @@ setup(
     long_description_content_type="text/markdown",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    entry_points={},
-    python_requires=">=3.7.0",
     install_requires=required,
 )
