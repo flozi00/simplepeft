@@ -1,5 +1,5 @@
 import datasets
-from simplepeft.data.main import get_dataloader
+from simplepeft.data import get_dataloader
 from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
