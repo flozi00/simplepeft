@@ -15,7 +15,7 @@
 from setuptools import find_packages, setup
 
 with open("requirements.txt") as f:
-    required = [line.strip() for line in f.read() if line]
+    required = [line.strip() for line in f.read().splitlines() if line]
 
 setup(
     name="simplepeft",
