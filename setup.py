@@ -14,9 +14,6 @@
 
 from setuptools import find_packages, setup
 
-with open("requirements.txt") as f:
-    required = [line.strip() for line in f.read().splitlines() if line]
-
 setup(
     name="simplepeft",
     version="0.0.1.dev0",
@@ -26,5 +23,4 @@ setup(
     long_description_content_type="text/markdown",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    install_requires=required,
 )
