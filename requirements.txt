@@ -1,6 +1,6 @@
 transformers>=4.28.1
 datasets
-https://github.com/huggingface/peft/archive/refs/heads/main.zip
+peft
 lightning==2.0.1
 accelerate
 gputil
