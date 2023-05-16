@@ -24,7 +24,7 @@ setup(
     license_files=["LICENSE"],
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
-    package_dir={"": "src"},
+    package_dir={"simplepeft": "src"},
     packages=find_packages("src"),
     entry_points={},
     python_requires=">=3.7.0",
