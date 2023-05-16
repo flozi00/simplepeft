@@ -71,7 +71,6 @@ def start_training(
         precision=16,
         accumulate_grad_batches=model_conf.get("gradient_accumulation", 1),
         callbacks=[lr_monitor],
-        gradient_clip_val=0.5,
         strategy=strategy,
     )
     trainer.fit(model=plmodel, train_dataloaders=dloader)

@@ -23,7 +23,6 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
         "task_type": TaskType.CAUSAL_LM,
-        "precision": 16,
         "gradient_accumulation": 4,
     },
     "rwkv": {
@@ -32,7 +31,6 @@ TEXT_GEN_MODELS = {
         "8-bit": False,
         "target_modules": ["key", "value", "receptance", "output"],
         "task_type": TaskType.CAUSAL_LM,
-        "precision": 32,
         "gradient_accumulation": 4,
     },
     "gpt_neox": {
@@ -41,7 +39,6 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["query_key_value"],
         "task_type": TaskType.CAUSAL_LM,
-        "precision": 16,
         "gradient_accumulation": 4,
     },
 }
