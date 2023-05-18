@@ -2,6 +2,7 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     T5ForConditionalGeneration,
+    AutoModelForSeq2SeqLM,
 )
 from peft import TaskType
 
@@ -14,6 +15,14 @@ TEXT_TEXT_MODELS = {
         "task_type": TaskType.SEQ_2_SEQ_LM,
         "gradient_accumulation": 1,
     },
+    "bart": { 
+        "class": AutoModelForSeq2SeqLM, 
+            "processor": AutoTokenizer, 
+            "8-bit": False, 
+            "target_modules": ["v_proj", "q_proj"], 
+            "task_type": TaskType.SEQ_2_SEQ_LM, 
+            "gradient_accumulation": 1, 
+        },
 }
 
 TEXT_GEN_MODELS = {

@@ -15,7 +15,7 @@ LR = 1e-4
 def get_dataset():
     data_file = "OpenAssistant/oasst1"
     ds = datasets.load_dataset(data_file)
-    df = pd.concat([ds["train"].to_pandas(), ds["validation"].to_pandas()], axis=0)
+    df = pd.concat([ds["train"].to_pandas(), ds["validation"].to_pandas()], axis=0)  # type: ignore
     rows = {}
     message_ids = df["message_id"].values.tolist()
     message_tree_ids = df["message_tree_id"].values.tolist()
@@ -103,7 +103,15 @@ def get_dataset():
     )
     for row in ds2:
         all_rows.append(
-            f"<|prompter|>{row['instruction']} {row['input']}<|assistant|>{row['output']}"
+            f"<|prompter|>{row['instruction']} {row['input']}<|assistant|>{row['output']}"  # type: ignore
+        )
+
+    ds2 = datasets.load_dataset(
+        "argilla/databricks-dolly-15k-curated-multilingual", split="de"
+    )
+    for row in ds2:
+        all_rows.append(
+            f"<|prompter|>{row['context']}\n\n{row['instruction']}<|assistant|>{row['response']}"  # type: ignore
         )
 
     print(len(all_rows))
@@ -116,14 +124,14 @@ def get_dataset():
 def main():
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
-        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=False
+        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=False  # type: ignore
     )
 
     cv_data = get_dataset()
 
     # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(
-        task=TASK,
+        task=TASK,  # type: ignore
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,

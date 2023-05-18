@@ -18,12 +18,12 @@ class lightningmodel(pl.LightningModule):
         self.save_every_hours = save_every_hours
 
     def forward(self, **inputs):
-        return self.model(**inputs)
+        return self.model(return_dict = True, **inputs)
 
     def training_step(self, batch, batch_idx):
         elapsed_time = time.time() - self.start_time
         outputs = self(**batch)
-        loss = outputs[0]
+        loss = outputs.loss
 
         # iterate over all gpus and log temperature and load, if temperature is above 74, wait 4 seconds to cool down
         gpus = GPUtil.getGPUs()
@@ -58,12 +58,14 @@ class lightningmodel(pl.LightningModule):
             except Exception as e:
                 print(e)
 
+        self.lr_schedulers().step() # type: ignore
+
         return loss
 
     def configure_optimizers(self):
         optimizer = self.optim(self.parameters(), lr=self.lr)
         scheduler = ExponentialLR(
             optimizer=optimizer,
-            gamma=0.9999,
+            gamma=0.99999,
         )
         return {"optimizer": optimizer, "lr_scheduler": scheduler}

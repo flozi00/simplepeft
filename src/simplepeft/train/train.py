@@ -1,6 +1,6 @@
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import LearningRateMonitor
-from lightning.pytorch.loggers import TensorBoardLogger
+from lightning.pytorch.loggers import WandbLogger
 from lion_pytorch import Lion
 
 from ..train.model import lightningmodel
@@ -42,7 +42,7 @@ def start_training(
         save_every_hours=1 if deepspeed is False else 6,
     )
 
-    _logger = TensorBoardLogger(save_dir="tensorboardlogs", name=PEFT_MODEL)
+    _logger = WandbLogger(project="huggingface", name=PEFT_MODEL)
 
     lr_monitor = LearningRateMonitor(logging_interval="step")
 
