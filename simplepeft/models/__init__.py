@@ -41,14 +41,14 @@ def get_model(
     # check if the model_name is a peft model, if True, get the base model name from the config
     # otherwise, dont do anything
     try:
-        conf = LoraConfig.from_pretrained(model_name)
+        conf = LoraConfig.from_pretrained(pretrained_model_name_or_path=model_name)
         peft_name = model_name
         model_name = conf.base_model_name_or_path
     except Exception:
         pass
 
     # get the config of the base model and extract the model type from it
-    conf = AutoConfig.from_pretrained(model_name)
+    conf = AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name)
     model_type_by_config = conf.model_type
 
     # check if the model_type is in the list of models
@@ -94,11 +94,12 @@ def get_model(
                     print("Preparing model for 8-bit training")
                     model = prepare_model_for_int8_training(
                         model,
+                        use_gradient_checkpointing=False
                     )
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=32,
+                    r=16,
                     lora_alpha=64,
                     target_modules=model_conf.get("target_modules"),
                     lora_dropout=0.01,
@@ -110,26 +111,30 @@ def get_model(
                 # load the peft model if possible, otherwise, create it from the base model and the lora config
                 try:
                     model = PeftModel.from_pretrained(
-                        model,
-                        peft_name,
+                        model=model,
+                        model_id=peft_name,
                         is_trainable=True,
                     )
                     print("Loaded peft model")
                     if use_peft is False:
                         try:
                             model = model.merge_and_unload()
+                            model = model.train()
+                            for param in model.parameters():
+                                param.requires_grad = True
                             print("Merged peft model to base model format")
                         except Exception as e:
                             print(e)
                 except Exception as e:
                     if use_peft:
                         print("Creating peft model")
-                        model = get_peft_model(model, peft_config)
+                        model = get_peft_model(model=model, peft_config=peft_config)
 
             if push_to_hub:
-                model.push_to_hub(model_name.split("/")[-1])
+                model.push_to_hub(model_name.split(sep="/")[-1])
 
             model_conf["is8bit"] = bnb_compatible
+            model_conf["is_peft"] = use_peft
             return model, processor, model_conf
 
     # if the model_type is not in the list of supported models, raise an error

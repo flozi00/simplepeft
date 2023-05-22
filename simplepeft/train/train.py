@@ -7,9 +7,6 @@ from ..train.model import lightningmodel
 
 import warnings
 
-from deepspeed.ops.adam import DeepSpeedCPUAdam
-from lightning.pytorch.strategies import DeepSpeedStrategy
-
 warnings.simplefilter("ignore")
 
 
@@ -32,38 +29,20 @@ def start_training(
         LR (float): The learning rate
         model_conf (dict): The model configuration from this library
     """
-    deepspeed = model_conf.get("is8bit", False) is False
     plmodel = lightningmodel(
         model_name=PEFT_MODEL,
         model=model,
         processor=processor,
-        optim=Lion if deepspeed is False else DeepSpeedCPUAdam,
+        optim=Lion,
         lr=LR,
-        save_every_hours=1 if deepspeed is False else 6,
+        save_every_hours=1 if model_conf["is_peft"] else 6,
     )
 
     _logger = WandbLogger(project="huggingface", name=PEFT_MODEL)
 
     lr_monitor = LearningRateMonitor(logging_interval="step")
 
-    strategy = DeepSpeedStrategy(
-        offload_optimizer=True,
-        offload_parameters=True,
-        offload_optimizer_device="cpu",
-        offload_params_device="cpu",
-        zero_optimization=True,
-        stage=2,
-        cpu_checkpointing=True,
-        allgather_partitions=True,
-        allgather_bucket_size=2e8,
-        reduce_scatter=True,
-        reduce_bucket_size=2e8,
-        overlap_comm=True,
-        contiguous_gradients=True,
-    )
-
-    if deepspeed is False:
-        strategy = "auto"
+    strategy = "auto"
 
     trainer = pl.Trainer(
         logger=_logger,
@@ -72,5 +51,6 @@ def start_training(
         accumulate_grad_batches=model_conf.get("gradient_accumulation", 1),
         callbacks=[lr_monitor],
         strategy=strategy,
+        gradient_clip_val=0.7,
     )
     trainer.fit(model=plmodel, train_dataloaders=dloader)

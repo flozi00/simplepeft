@@ -43,19 +43,21 @@ class ASRDataCollator:
     wav_key: list = field(default_factory=list)
     locale_key: str = "locale"
     text_key: str = "sentence"
-    special_audios = datasets.concatenate_datasets(
-        [
-            datasets.load_dataset(
-                "flozi00/VocalSound_audio_16k", split="train"
-            ).cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
-            datasets.load_dataset("ashraq/esc50", split="train")
-            .remove_columns(["filename", "fold", "esc10", "src_file", "take", "target"])
-            .rename_column("category", "label")
-            .cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
-        ]
-    )
+    special_audios = []
 
     def augment(self, feature):
+        if self.special_audios == []:
+            self.special_audios = datasets.concatenate_datasets(
+                [
+                    datasets.load_dataset(
+                        "flozi00/VocalSound_audio_16k", split="train"
+                    ).cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
+                    datasets.load_dataset("ashraq/esc50", split="train")
+                    .remove_columns(["filename", "fold", "esc10", "src_file", "take", "target"])
+                    .rename_column("category", "label")
+                    .cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
+                ]
+            )
         special = self.special_audios[random.randint(0, len(self.special_audios) - 1)]
         special2 = self.special_audios[random.randint(0, len(self.special_audios) - 1)]
 
@@ -76,10 +78,8 @@ class ASRDataCollator:
             )
             new_text = f"!{special['label'].upper()}! {feature[self.text_key]} !{special2['label'].upper()}!"
         else:
-            new_audio = np.concatenate(
-                (special["audio"]["array"], special2["audio"]["array"])
-            )
-            new_text = f"!{special['label'].upper()}! !{special2['label'].upper()}!"
+            new_audio = myaudio
+            new_text = feature[self.text_key]
 
         return new_audio, new_text
 

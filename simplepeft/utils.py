@@ -7,7 +7,7 @@ IS_WINDOWS = os == "Windows"
 
 
 class Tasks(Enum):
-    ASR = 1
-    Text2Text = 2
-    TEXT_GEN = 3
-    TTS = 4
+    ASR = "ASR"
+    Text2Text = "T2T"
+    TEXT_GEN = "TEXT"
+    TTS = "TTS"

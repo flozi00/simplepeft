@@ -19,9 +19,9 @@ TEXT_TEXT_MODELS = {
         "class": AutoModelForSeq2SeqLM, 
             "processor": AutoTokenizer, 
             "8-bit": False, 
-            "target_modules": ["v_proj", "q_proj"], 
+            "target_modules": ["v_proj", "q_proj",], 
             "task_type": TaskType.SEQ_2_SEQ_LM, 
-            "gradient_accumulation": 1, 
+            "gradient_accumulation": 4, 
         },
 }
 
@@ -30,7 +30,7 @@ TEXT_GEN_MODELS = {
         "class": AutoModelForCausalLM,
         "processor": AutoTokenizer,
         "8-bit": True,
-        "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
+        "target_modules": ["v_proj", "q_proj"],
         "task_type": TaskType.CAUSAL_LM,
         "gradient_accumulation": 4,
     },
@@ -38,9 +38,9 @@ TEXT_GEN_MODELS = {
         "class": AutoModelForCausalLM,
         "processor": AutoTokenizer,
         "8-bit": False,
-        "target_modules": ["key", "value", "receptance", "output"],
+        "target_modules": ["key", "value",],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 4,
+        "gradient_accumulation": 1,
     },
     "gpt_neox": {
         "class": AutoModelForCausalLM,
