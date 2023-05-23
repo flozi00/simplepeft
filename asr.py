@@ -5,9 +5,9 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 16
-BASE_MODEL = "patrickvonplaten/mms-1b"
-PEFT_MODEL = "mms-1b-german-cv13"
+BATCH_SIZE = 4
+BASE_MODEL = "facebook/wav2vec2-xls-r-2b"
+PEFT_MODEL = "wav2vec2-xls-r-2b-german-cv13"
 TASK = Tasks.ASR
 LR = 1e-5
 CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
@@ -18,11 +18,11 @@ CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
 # the audio is casted to the Audio feature of the datasets library with a sampling rate of 16000
 # the dataset is shuffled with a seed of 48
 def get_dataset() -> datasets.Dataset:
-    df = pd.read_table(f"{CV_DATA_PATH}validated.tsv")
-    df["audio"] = f"{CV_DATA_PATH}clips/" + df["path"].astype(str)
-    df["down_votes"] = df["down_votes"].astype(int)
-    df["up_votes"] = df["up_votes"].astype(int)
-    df["sentence"] = df["sentence"].astype(str)
+    df = pd.read_table(filepath_or_buffer=f"{CV_DATA_PATH}validated.tsv")
+    df["audio"] = f"{CV_DATA_PATH}clips/" + df["path"].astype(dtype=str)
+    df["down_votes"] = df["down_votes"].astype(dtype=int)
+    df["up_votes"] = df["up_votes"].astype(dtype=int)
+    df["sentence"] = df["sentence"].astype(dtype=str)
 
     mask = (
         (df["down_votes"] <= 0)
@@ -31,9 +31,9 @@ def get_dataset() -> datasets.Dataset:
     )
     df = df.loc[mask]
 
-    d_sets = datasets.Dataset.from_pandas(df)
+    d_sets = datasets.Dataset.from_pandas(df=df)
 
-    d_sets = d_sets.cast_column("audio", datasets.features.Audio(sampling_rate=16000))
+    d_sets = d_sets.cast_column(column="audio", feature=datasets.features.Audio(sampling_rate=16000))
     d_sets = d_sets.shuffle(seed=48)
 
     print(d_sets)

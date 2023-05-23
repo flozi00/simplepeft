@@ -29,6 +29,7 @@ SPEECH_MODELS = {
         "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
         "precision": 16,
         "modules_to_save": ["lm_head"],
+        "gradient_accumulation": 16,
     },
 }
 
