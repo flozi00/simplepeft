@@ -16,9 +16,11 @@ class lightningmodel(pl.LightningModule):
         self.optim = optim
         self.start_time = time.time()
         self.save_every_hours = save_every_hours
+        self.processor.save_pretrained(self.model_name)
+        self.processor.push_to_hub(self.model_name)
 
     def forward(self, **inputs):
-        return self.model(return_dict = True, **inputs)
+        return self.model(return_dict=True, **inputs)
 
     def training_step(self, batch, batch_idx):
         elapsed_time = time.time() - self.start_time
@@ -45,7 +47,6 @@ class lightningmodel(pl.LightningModule):
 
         if batch_idx % (100 * self.save_every_hours) == 0 and batch_idx != 0:
             self.model.save_pretrained(self.model_name)
-            self.processor.save_pretrained(self.model_name)
 
         # push to hub every X hours
         if elapsed_time > (
@@ -54,11 +55,10 @@ class lightningmodel(pl.LightningModule):
             self.start_time = time.time()
             try:
                 self.model.push_to_hub(self.model_name)
-                self.processor.push_to_hub(self.model_name)
             except Exception as e:
                 print(e)
 
-        self.lr_schedulers().step() # type: ignore
+        self.lr_schedulers().step()  # type: ignore
 
         return loss
 

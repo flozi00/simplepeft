@@ -15,7 +15,12 @@ except ImportError:
 
 
 def get_model(
-    task: str, model_name: str, peft_name: str = None, use_peft=True, push_to_hub=False
+    task: str,
+    model_name: str,
+    peft_name: str = None,
+    use_peft=True,
+    push_to_hub=False,
+    processor_name: str = None,
 ):
     """Get the ready to use pef model, processor and model config
     Args: task (str): Task for the model
@@ -41,9 +46,9 @@ def get_model(
     # check if the model_name is a peft model, if True, get the base model name from the config
     # otherwise, dont do anything
     try:
-        conf = LoraConfig.from_pretrained(pretrained_model_name_or_path=model_name)
+        lora_conf = LoraConfig.from_pretrained(pretrained_model_name_or_path=model_name)
         peft_name = model_name
-        model_name = conf.base_model_name_or_path
+        model_name = lora_conf.base_model_name_or_path
     except Exception:
         pass
 
@@ -61,24 +66,45 @@ def get_model(
                 and bnb_available is True
                 and use_peft is True
             )
+
+            # load the processor
+            processor = model_conf.get("processor").from_pretrained(
+                model_name if processor_name is None else processor_name
+            )
+
+            # check if the model_type is whisper or mctct and set the config accordingly
+            if model_type == "whisper":
+                conf.forced_decoder_ids, conf.suppress_tokens = (
+                    None,
+                    [],
+                )
+            elif model_type in ["wav2vec2", "mctct"]:
+                conf.update(
+                    {
+                        "feat_proj_dropout": 0,
+                        "attention_dropout": 0,
+                        "hidden_dropout": 0,
+                        "final_dropout": 0,
+                        "mask_time_prob": 0,
+                        "mask_time_length": 0,
+                        "mask_feature_prob": 0,
+                        "mask_feature_length": 0,
+                        "gradient_checkpointing": True,
+                        "layerdrop": 0,
+                        "ctc_loss_reduction": "mean",
+                        "pad_token_id": processor.tokenizer.pad_token_id,
+                        "vocab_size": len(processor.tokenizer),
+                        "activation_dropout": 0,
+                    }
+                )
+
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
                 model_name,
                 load_in_8bit=bnb_compatible,
                 device_map="auto" if bnb_compatible else None,
+                config=conf,
             )
-
-            # load the processor
-            processor = model_conf.get("processor").from_pretrained(model_name)
-
-            # check if the model_type is whisper or mctct and set the config accordingly
-            if model_type == "whisper":
-                model.config.forced_decoder_ids, model.config.suppress_tokens = (
-                    None,
-                    [],
-                )
-            elif model_type == "mctct":
-                model.config.ctc_loss_reduction = "mean"
 
             try:
                 if processor.pad_token is None:
@@ -93,8 +119,7 @@ def get_model(
                 if bnb_compatible:
                     print("Preparing model for 8-bit training")
                     model = prepare_model_for_int8_training(
-                        model,
-                        use_gradient_checkpointing=False
+                        model, use_gradient_checkpointing=False
                     )
 
                 # create the lora config

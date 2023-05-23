@@ -43,6 +43,7 @@ class ASRDataCollator:
     wav_key: list = field(default_factory=list)
     locale_key: str = "locale"
     text_key: str = "sentence"
+    max_audio_in_seconds: float = 10.0
     special_audios = []
 
     def augment(self, feature):
@@ -51,9 +52,13 @@ class ASRDataCollator:
                 [
                     datasets.load_dataset(
                         "flozi00/VocalSound_audio_16k", split="train"
-                    ).cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
+                    ).cast_column(
+                        "audio", datasets.features.Audio(sampling_rate=16000)
+                    ),
                     datasets.load_dataset("ashraq/esc50", split="train")
-                    .remove_columns(["filename", "fold", "esc10", "src_file", "take", "target"])
+                    .remove_columns(
+                        ["filename", "fold", "esc10", "src_file", "take", "target"]
+                    )
                     .rename_column("category", "label")
                     .cast_column("audio", datasets.features.Audio(sampling_rate=16000)),
                 ]
@@ -94,7 +99,7 @@ class ASRDataCollator:
 
             myaudio, mytext = self.augment(feature)
 
-            rate = int((len(myaudio) / 16000) / 29)
+            rate = int((len(myaudio) / 16000) / self.max_audio_in_seconds)
             if rate > 1:
                 librosa.effects.time_stretch(myaudio, rate=rate)
 

@@ -4,9 +4,9 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 6
-BASE_MODEL = "RWKV/rwkv-4-430m-pile"
-PEFT_MODEL = "rwkv-430m-german-instruction"
+BATCH_SIZE = 12
+BASE_MODEL = "RWKV/rwkv-4-169m-pile"
+PEFT_MODEL = "rwkv-169m-german-instruction"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
 
@@ -18,7 +18,7 @@ def get_dataset() -> datasets.Dataset:
         "philschmid/translated_tasks_de_google_52k", split="train"
     )
     for row in ds2:
-        if len(row["input"]) > 128: # type: ignore
+        if len(row["input"]) > 128:  # type: ignore
             all_rows.append(
                 f'prompt: {row["instruction"]} \ncontext: {row["input"]} \nanswer: {row["output"]}'  # type: ignore
             )
@@ -27,7 +27,7 @@ def get_dataset() -> datasets.Dataset:
         "argilla/databricks-dolly-15k-curated-multilingual", split="de"
     )
     for row in ds2:
-        if len(row["context"]) > 128: # type: ignore
+        if len(row["context"]) > 128:  # type: ignore
             all_rows.append(
                 f'prompt: {row["instruction"]} \ncontext: {row["context"]} \nanswer: {row["response"]}'  # type: ignore
             )

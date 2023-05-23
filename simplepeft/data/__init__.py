@@ -1,3 +1,4 @@
+import random
 from .AUDIOCollator import ASRDataCollator, TTSDataCollator
 from torch.utils.data import DataLoader
 from ..data.TEXTCollator import CLMDataCollator, TextTextDataCollator
@@ -28,6 +29,9 @@ def get_dataloader(
             text_key=kwargs.get(
                 "text_key", "sentence"
             ),  # text_key is a key to get the text from the dataset
+            max_audio_in_seconds=kwargs.get(
+                "max_audio_in_seconds", 10.0
+            ),  # max_audio_in_seconds is the maximum length in seconds of the audio
         )
     elif task == Tasks.Text2Text:
         data_collator = TextTextDataCollator(
@@ -72,6 +76,7 @@ def get_dataloader(
             ),  # speaker_model is a model to get the speaker embedding from, needs to be a EncoderClassifier from speechbrain
         )
 
+    datas = datas.shuffle(seed=random.randint(0, 1000))
     dloader = DataLoader(
         datas,
         collate_fn=data_collator,

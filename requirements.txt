@@ -5,3 +5,4 @@ fire
 librosa
 soundfile
 torch
+lightning
