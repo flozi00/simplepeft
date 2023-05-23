@@ -55,7 +55,7 @@ def get_model(
     # get the config of the base model and extract the model type from it
     conf = AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name)
     model_type_by_config = conf.model_type
-
+    kwargs = {}
     # check if the model_type is in the list of models
     for model_type in list_to_check:
         if model_type.lower() in model_type_by_config.lower():
@@ -97,6 +97,7 @@ def get_model(
                         "activation_dropout": 0,
                     }
                 )
+                kwargs["llm_int8_skip_modules"] = model_conf.get("modules_to_save", None)
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
@@ -104,6 +105,7 @@ def get_model(
                 load_in_8bit=bnb_compatible,
                 device_map="auto" if bnb_compatible else None,
                 config=conf,
+                **kwargs,
             )
 
             try:

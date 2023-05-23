@@ -5,7 +5,10 @@ from transformers import (
     AutoProcessor,
     SpeechT5ForTextToSpeech,
     SpeechT5Processor,
+    Wav2Vec2ForCTC
 )
+
+Wav2Vec2ForCTC._no_split_modules = []
 
 SPEECH_MODELS = {
     "whisper": {
@@ -23,13 +26,13 @@ SPEECH_MODELS = {
         "precision": 16,
     },
     "wav2vec2": {
-        "class": AutoModelForCTC,
+        "class": Wav2Vec2ForCTC,
         "processor": AutoProcessor,
         "8-bit": False,
-        "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj"],
+        "target_modules": ["k_proj", "v_proj", "q_proj", "out_proj", "intermediate_dense", "output_dense"],
         "precision": 16,
         "modules_to_save": ["lm_head"],
-        "gradient_accumulation": 16,
+        "gradient_accumulation": 2,
     },
 }
 

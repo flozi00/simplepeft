@@ -9,7 +9,7 @@ BATCH_SIZE = 4
 BASE_MODEL = "facebook/wav2vec2-xls-r-2b"
 PEFT_MODEL = "wav2vec2-xls-r-2b-german-cv13"
 TASK = Tasks.ASR
-LR = 1e-5
+LR = 1e-4
 CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
 
 
@@ -59,7 +59,7 @@ def main():
         task=TASK,  # type: ignore
         processor=processor,
         datas=cv_data,
-        max_audio_in_seconds=10.0,
+        max_audio_in_seconds=15,
         BATCH_SIZE=BATCH_SIZE,
     )
 
