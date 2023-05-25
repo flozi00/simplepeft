@@ -30,8 +30,8 @@ def start_training(
         model_conf (dict): The model configuration from this library
     """
     if model_conf["is8bit"]:
-        from bitsandbytes.optim import PagedLion8bit
-        optim = PagedLion8bit
+        from bitsandbytes.optim import PagedLion
+        optim = PagedLion
     else:
         optim = Lion
     plmodel = lightningmodel(
