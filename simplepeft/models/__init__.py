@@ -121,7 +121,7 @@ def get_model(
                 if bnb_compatible:
                     print("Preparing model for 8-bit training")
                     model = prepare_model_for_int8_training(
-                        model, use_gradient_checkpointing=False
+                        model, use_gradient_checkpointing=True
                     )
 
                 # create the lora config

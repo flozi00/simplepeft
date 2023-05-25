@@ -20,6 +20,8 @@ SPEECH_MODELS = {
             "v_proj",
             "q_proj",
             "out_proj",
+            "fc1",
+            "fc2",
         ],
         # "modules_to_save": ["embed_tokens"],
         "output_embedding_layer_name": "proj_out",

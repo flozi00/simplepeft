@@ -5,9 +5,9 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 4
-BASE_MODEL = "facebook/wav2vec2-xls-r-2b"
-PEFT_MODEL = "wav2vec2-xls-r-2b-german-cv13"
+BATCH_SIZE = 48
+BASE_MODEL = "openai/whisper-large-v2"
+PEFT_MODEL = "whisper-large-v2-german-cv13"
 TASK = Tasks.ASR
 LR = 1e-4
 CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
@@ -50,7 +50,6 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=True,
-        processor_name="aware-ai/wav2vec2-xls-r-1b-german-cv11",
     )
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified

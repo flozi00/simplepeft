@@ -29,11 +29,16 @@ def start_training(
         LR (float): The learning rate
         model_conf (dict): The model configuration from this library
     """
+    if model_conf["is8bit"]:
+        from bitsandbytes.optim import PagedLion8bit
+        optim = PagedLion8bit
+    else:
+        optim = Lion
     plmodel = lightningmodel(
         model_name=PEFT_MODEL,
         model=model,
         processor=processor,
-        optim=Lion,
+        optim=optim,
         lr=LR,
         save_every_hours=1 if model_conf["is_peft"] else 6,
     )
