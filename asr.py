@@ -33,7 +33,9 @@ def get_dataset() -> datasets.Dataset:
 
     d_sets = datasets.Dataset.from_pandas(df=df)
 
-    d_sets = d_sets.cast_column(column="audio", feature=datasets.features.Audio(sampling_rate=16000))
+    d_sets = d_sets.cast_column(
+        column="audio", feature=datasets.features.Audio(sampling_rate=16000)
+    )
     d_sets = d_sets.shuffle(seed=48)
 
     print(d_sets)

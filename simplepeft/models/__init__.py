@@ -97,7 +97,9 @@ def get_model(
                         "activation_dropout": 0,
                     }
                 )
-                kwargs["llm_int8_skip_modules"] = model_conf.get("modules_to_save", None)
+                kwargs["llm_int8_skip_modules"] = model_conf.get(
+                    "modules_to_save", None
+                )
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
@@ -126,7 +128,7 @@ def get_model(
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=16,
+                    r=32,
                     lora_alpha=64,
                     target_modules=model_conf.get("target_modules"),
                     lora_dropout=0.01,

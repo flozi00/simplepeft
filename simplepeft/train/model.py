@@ -66,13 +66,14 @@ class lightningmodel(pl.LightningModule):
         # when the learning rate is below 5e-6, the learning rate is decreased every x steps
         # this time x is 1 divided by the loss, so the lower the loss the less often the learning rate is decreased
         # notice: while experiments on whisper fine-tuning, the loss reached 0.2 after 30 steps and 0.1 after 60 steps
-        if self.optimizers().param_groups[0]["lr"] > 5e-6:
-            for s in range(int(2/loss)):
-                self.lr_schedulers().step()
-        else:
-            if batch_idx % int(1/loss) == 0:
-                self.lr_schedulers().step()
-        
+        if loss > 0:
+            if self.optimizers().param_groups[0]["lr"] >= 1e-5:
+                for s in range(int(2 / loss)):
+                    self.lr_schedulers().step()
+            else:
+                if batch_idx % int(1 / loss) == 0:
+                    self.lr_schedulers().step()
+
         return loss
 
     def configure_optimizers(self):
