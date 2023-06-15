@@ -53,7 +53,7 @@ def get_model(
         pass
 
     # get the config of the base model and extract the model type from it
-    conf = AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name)
+    conf = AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name, trust_remote_code=True,)
     model_type_by_config = conf.model_type
     kwargs = {}
     # check if the model_type is in the list of models
@@ -107,6 +107,7 @@ def get_model(
                 load_in_8bit=bnb_compatible,
                 device_map="auto" if bnb_compatible else None,
                 config=conf,
+                trust_remote_code=True,
                 **kwargs,
             )
 

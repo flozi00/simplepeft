@@ -4,11 +4,15 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 12
-BASE_MODEL = "RWKV/rwkv-4-169m-pile"
-PEFT_MODEL = "rwkv-169m-german-instruction"
+BATCH_SIZE = 1
+BASE_MODEL = "OpenAssistant/falcon-7b-sft-mix-2000"
+PEFT_MODEL = "falcon-7b-german"
 TASK = Tasks.TEXT_GEN
-LR = 1e-4
+LR = 1e-5
+
+PROMPTER = "<|prompter|>"
+BOT = "<|assistant|>"
+END = "<|endoftext|>"
 
 
 def get_dataset() -> datasets.Dataset:
@@ -20,7 +24,7 @@ def get_dataset() -> datasets.Dataset:
     for row in ds2:
         if len(row["input"]) > 128:  # type: ignore
             all_rows.append(
-                f'prompt: {row["instruction"]} \ncontext: {row["input"]} \nanswer: {row["output"]}'  # type: ignore
+                f'{PROMPTER}{row["instruction"]} {row["input"]} {END}{BOT}{row["output"]}{END}'  # type: ignore
             )
 
     ds2 = datasets.load_dataset(
@@ -29,10 +33,16 @@ def get_dataset() -> datasets.Dataset:
     for row in ds2:
         if len(row["context"]) > 128:  # type: ignore
             all_rows.append(
-                f'prompt: {row["instruction"]} \ncontext: {row["context"]} \nanswer: {row["response"]}'  # type: ignore
+                f'{PROMPTER}{row["instruction"]} {row["context"]} {END}{BOT}{row["response"]}{END}'  # type: ignore
             )
 
-    ds = datasets.Dataset.from_dict({"text": all_rows})
+    ds = datasets.Dataset.from_dict({"conversations": all_rows})
+
+    ds3 = datasets.load_dataset(
+        "flozi00/openassistant-oasst1-flattened-filtered", split="train"
+    )
+
+    ds = datasets.concatenate_datasets([ds, ds3])
 
     return ds
 
@@ -52,7 +62,7 @@ def main():
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
         max_input_length=1024,
-        text_key="text",
+        text_key="conversations",
     )
 
     # start training

@@ -50,4 +50,12 @@ TEXT_GEN_MODELS = {
         "task_type": TaskType.CAUSAL_LM,
         "gradient_accumulation": 4,
     },
+    "RefinedWebModel": {
+        "class": AutoModelForCausalLM,
+        "processor": AutoTokenizer,
+        "8-bit": True,
+        "target_modules": ["query_key_value"],
+        "task_type": TaskType.CAUSAL_LM,
+        "gradient_accumulation": 4,
+    }
 }
