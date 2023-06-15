@@ -1,7 +1,7 @@
 from ..models.speech import SPEECH_MODELS, TTS_MODELS
 from ..models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
-from transformers import AutoConfig
+from transformers import AutoConfig, BitsAndBytesConfig
 
 from ..utils import Tasks
 
@@ -101,10 +101,12 @@ def get_model(
                     "modules_to_save", None
                 )
 
+            if bnb_compatible:
+                kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
                 model_name,
-                load_in_8bit=bnb_compatible,
                 device_map="auto" if bnb_compatible else None,
                 config=conf,
                 trust_remote_code=True,

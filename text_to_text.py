@@ -4,43 +4,38 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 24
-BASE_MODEL = "google/flan-t5-large"
-PEFT_MODEL = "flan-t5-large-german-instructions"
+BATCH_SIZE = 2
+BASE_MODEL = "t5-small"
+PEFT_MODEL = "t5-small-relevance"
 TASK = Tasks.Text2Text
 LR = 1e-5
 
 
-def map_to_ds(example):
-    example[
-        "prompt"
-    ] = f'prompt: {example["instruction"]} </s> context: {example["context"]}'
-    example["target"] = example["response"]
-
-    return example
-
-
 def get_dataset():
-    ds_batch = []
-    for x in ["de", "en"]:
-        ds = datasets.load_dataset(
-            "argilla/databricks-dolly-15k-curated-multilingual", split=x
-        )
-        ds = ds.filter(
-            lambda x: x["category"]
-            in [
-                "information_extraction",
-                "closed_qa",
-            ]
-        )
+    dprdata = datasets.load_dataset('deepset/germandpr',split="train" ,use_auth_token=True)
+    dataset = {"prompt": [], "target": []}
+    # training set:
+    for data in dprdata:
+        query = data['question']
+        positive_passages = data['positive_ctxs']["text"]
+        negative_passages = data['hard_negative_ctxs']["text"]
+    
+        for entry in positive_passages:
+            input_text = "Query: "  + query + " Context: " + entry
+            label_text = "relevant"
 
-        ds = ds.map(map_to_ds, remove_columns=ds.column_names) # type: ignore
-        ds_batch.append(ds)
+            dataset["prompt"].append(input_text)
+            dataset["target"].append(label_text)
+            
+        
+        for entry in negative_passages:
+            input_text = "Query: "  + query + " Context: " + entry
+            label_text = "irrelevant"
 
-    ds = datasets.concatenate_datasets(ds_batch)
+            dataset["prompt"].append(input_text)
+            dataset["target"].append(label_text)   
 
-    return ds
-
+    return dataset
 
 def main():
     # load model, processor and model_conf by using the get_model function
@@ -50,18 +45,19 @@ def main():
         peft_name=PEFT_MODEL,
     )
 
-    cv_data = get_dataset()
+    ds = datasets.Dataset.from_dict(get_dataset())
+    print(ds)
 
     # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(
         task=TASK, # type: ignore
         processor=processor,
-        datas=cv_data,
+        datas=ds,
         BATCH_SIZE=BATCH_SIZE,
         source_key="prompt",
         target_key="target",
-        max_input_length=1024,
-        max_output_length=256,
+        max_input_length=512,
+        max_output_length=8,
     )
 
     # start training

@@ -58,21 +58,8 @@ class lightningmodel(pl.LightningModule):
             except Exception as e:
                 print(e)
 
-        # this is an custom learning rate sheduler
-        # while the learning rate is above 5e-6, the formula is 2 divided by the loss
-        # the lower the loss, the more often the learning rate is decreased
-        # this allows for a faster training at the beginning because
-        # we have a higher learning rate and a lower learning rate at the end
-        # when the learning rate is below 5e-6, the learning rate is decreased every x steps
-        # this time x is 1 divided by the loss, so the lower the loss the less often the learning rate is decreased
-        # notice: while experiments on whisper fine-tuning, the loss reached 0.2 after 30 steps and 0.1 after 60 steps
-        if loss > 0:
-            if self.optimizers().param_groups[0]["lr"] >= 1e-5:
-                for s in range(int(2 / loss)):
-                    self.lr_schedulers().step()
-            else:
-                if batch_idx % int(1 / loss) == 0:
-                    self.lr_schedulers().step()
+        if batch_idx % 10 == 0 and batch_idx >= 500:
+            self.lr_schedulers().step()
 
         return loss
 
@@ -80,6 +67,6 @@ class lightningmodel(pl.LightningModule):
         optimizer = self.optim(self.parameters(), lr=self.lr)
         scheduler = ExponentialLR(
             optimizer=optimizer,
-            gamma=0.999,
+            gamma=0.9999,
         )
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
