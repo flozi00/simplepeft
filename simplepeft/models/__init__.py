@@ -53,7 +53,10 @@ def get_model(
         pass
 
     # get the config of the base model and extract the model type from it
-    conf = AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name, trust_remote_code=True,)
+    conf = AutoConfig.from_pretrained(
+        pretrained_model_name_or_path=model_name,
+        trust_remote_code=True,
+    )
     model_type_by_config = conf.model_type
     kwargs = {}
     # check if the model_type is in the list of models
@@ -163,7 +166,10 @@ def get_model(
                         model = get_peft_model(model=model, peft_config=peft_config)
 
             if push_to_hub:
-                model.push_to_hub(model_name.split(sep="/")[-1])
+                processor.push_to_hub(model_name.split(sep="/")[-1])
+                model.push_to_hub(
+                    model_name.split(sep="/")[-1]
+                )
 
             model_conf["is8bit"] = bnb_compatible
             model_conf["is_peft"] = use_peft

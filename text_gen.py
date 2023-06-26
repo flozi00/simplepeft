@@ -28,7 +28,7 @@ def get_dataset() -> datasets.Dataset:
             )
 
     ds2 = datasets.load_dataset(
-        "argilla/databricks-dolly-15k-curated-multilingual", split="de"
+        "argilla/databricks-dolly-15k-curated-multilingual", split="de+en"
     )
     for row in ds2:
         if len(row["context"]) > 128:  # type: ignore
@@ -36,13 +36,14 @@ def get_dataset() -> datasets.Dataset:
                 f'{PROMPTER}{row["instruction"]} {row["context"]} {END}{BOT}{row["response"]}{END}'  # type: ignore
             )
 
-    ds = datasets.Dataset.from_dict({"conversations": all_rows})
-
     ds3 = datasets.load_dataset(
         "flozi00/openassistant-oasst1-flattened-filtered", split="train"
-    )
+    ).filter(lambda example: example["lang"] in ["de", "en"])
 
-    ds = datasets.concatenate_datasets([ds, ds3])
+    for x in ds3:
+        all_rows.append(x["conversations"])
+
+    ds = datasets.Dataset.from_dict({"conversations": all_rows})
 
     return ds
 
