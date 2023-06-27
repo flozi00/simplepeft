@@ -8,3 +8,4 @@ torch
 lightning
 gputil
 lion-pytorch
+unidecode

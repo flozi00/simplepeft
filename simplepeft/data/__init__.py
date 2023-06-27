@@ -21,7 +21,7 @@ def get_dataloader(
         data_collator = ASRDataCollator(
             processor=processor,
             wav_key=kwargs.get(
-                "wav_key", ["audio", "array"]
+                "wav_key", "audio"
             ),  # wav_key is a list of keys to get the wav array from the dataset
             locale_key=kwargs.get(
                 "locale_key", "locale"
@@ -66,7 +66,7 @@ def get_dataloader(
                 "reduction_factor", 2
             ),  # reduction_factor is the reduction factor of the model
             wav_key=kwargs.get(
-                "wav_key", ["audio", "array"]
+                "wav_key", "audio"
             ),  # wav_key is a list of keys to get the wav array from the dataset
             text_key=kwargs.get(
                 "text_key", "sentence"

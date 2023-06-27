@@ -43,18 +43,15 @@ class ASRDataCollator:
     max_audio_in_seconds: float = 10.0
 
     def augment(self, feature):
-        myaudio = feature
-        for k in self.wav_key:
-            myaudio = myaudio[k]
-        
-        new_audio = myaudio
+        myaudio = feature[self.wav_key]["array"]
+
         new_text = feature[self.text_key]
 
         rate = int((len(myaudio) / 16000) / self.max_audio_in_seconds)
         if rate > 1:
-            librosa.effects.time_stretch(myaudio, rate=rate)
+            myaudio = librosa.effects.time_stretch(myaudio, rate=rate)
 
-        return new_audio, new_text
+        return myaudio, new_text
 
     def __call__(
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
@@ -155,9 +152,7 @@ class TTSDataCollator:
 
         # Extract the audio from the feature even its nested
         for feature in features:
-            myaudio = feature
-            for k in self.wav_key:
-                myaudio = myaudio[k]
+            myaudio = feature[self.wav_key]["array"]
 
             mytext = normalize_text(feature[self.text_key])
             # feature extraction and tokenization

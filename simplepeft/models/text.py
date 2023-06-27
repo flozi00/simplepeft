@@ -15,14 +15,17 @@ TEXT_TEXT_MODELS = {
         "task_type": TaskType.SEQ_2_SEQ_LM,
         "gradient_accumulation": 1,
     },
-    "bart": { 
-        "class": AutoModelForSeq2SeqLM, 
-            "processor": AutoTokenizer, 
-            "8-bit": False, 
-            "target_modules": ["v_proj", "q_proj",], 
-            "task_type": TaskType.SEQ_2_SEQ_LM, 
-            "gradient_accumulation": 4, 
-        },
+    "bart": {
+        "class": AutoModelForSeq2SeqLM,
+        "processor": AutoTokenizer,
+        "8-bit": False,
+        "target_modules": [
+            "v_proj",
+            "q_proj",
+        ],
+        "task_type": TaskType.SEQ_2_SEQ_LM,
+        "gradient_accumulation": 4,
+    },
 }
 
 TEXT_GEN_MODELS = {
@@ -38,7 +41,10 @@ TEXT_GEN_MODELS = {
         "class": AutoModelForCausalLM,
         "processor": AutoTokenizer,
         "8-bit": False,
-        "target_modules": ["key", "value",],
+        "target_modules": [
+            "key",
+            "value",
+        ],
         "task_type": TaskType.CAUSAL_LM,
         "gradient_accumulation": 1,
     },
@@ -57,5 +63,21 @@ TEXT_GEN_MODELS = {
         "target_modules": ["query_key_value"],
         "task_type": TaskType.CAUSAL_LM,
         "gradient_accumulation": 4,
-    }
+    },
+    "llama": {
+        "class": AutoModelForCausalLM,
+        "processor": AutoTokenizer,
+        "8-bit": True,
+        "target_modules": [
+            "gate_proj",
+            "down_proj",
+            "up_proj",
+            "v_proj",
+            "q_proj",
+            "k_proj",
+            "o_proj",
+        ],
+        "task_type": TaskType.CAUSAL_LM,
+        "gradient_accumulation": 4,
+    },
 }

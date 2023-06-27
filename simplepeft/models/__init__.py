@@ -1,3 +1,4 @@
+import torch
 from ..models.speech import SPEECH_MODELS, TTS_MODELS
 from ..models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
@@ -110,7 +111,11 @@ def get_model(
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
                 model_name,
-                device_map="auto" if bnb_compatible else None,
+                device_map="auto",
+                max_memory={
+                    0: f"{int(torch.cuda.mem_get_info()[0]/1024**3)-4}GB",
+                    "cpu": "64GB",
+                },
                 config=conf,
                 trust_remote_code=True,
                 **kwargs,
@@ -167,9 +172,7 @@ def get_model(
 
             if push_to_hub:
                 processor.push_to_hub(model_name.split(sep="/")[-1])
-                model.push_to_hub(
-                    model_name.split(sep="/")[-1]
-                )
+                model.push_to_hub(model_name.split(sep="/")[-1])
 
             model_conf["is8bit"] = bnb_compatible
             model_conf["is_peft"] = use_peft

@@ -5,8 +5,8 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
-BASE_MODEL = "OpenAssistant/falcon-7b-sft-mix-2000"
-PEFT_MODEL = "falcon-7b-german"
+BASE_MODEL = "RWKV/rwkv-raven-1b5"
+PEFT_MODEL = "rwkv-raven-1b5-german-assistant"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
