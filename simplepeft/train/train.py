@@ -29,11 +29,20 @@ def start_training(
         LR (float): The learning rate
         model_conf (dict): The model configuration from this library
     """
+    strategy = "auto"
+
     if model_conf["is8bit"]:
         from bitsandbytes.optim import PagedLion
+
         optim = PagedLion
     else:
-        optim = Lion
+        try:
+            from deepspeed.ops.adam import DeepSpeedCPUAdam
+
+            optim = DeepSpeedCPUAdam
+            strategy = "deepspeed_stage_2_offload"
+        except:
+            optim = Lion
     plmodel = lightningmodel(
         model_name=PEFT_MODEL,
         model=model,
@@ -46,8 +55,6 @@ def start_training(
     _logger = WandbLogger(project="huggingface", name=PEFT_MODEL)
 
     lr_monitor = LearningRateMonitor(logging_interval="step")
-
-    strategy = "auto"
 
     trainer = pl.Trainer(
         logger=_logger,

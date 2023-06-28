@@ -139,3 +139,4 @@ merges*
 huggingface/
 offload/
 *.model
+*.safetensors

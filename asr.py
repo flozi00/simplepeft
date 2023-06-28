@@ -5,9 +5,9 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 32
-BASE_MODEL = "openai/whisper-large-v2"
-PEFT_MODEL = "whisper-large-v2-german-cv13"
+BATCH_SIZE = 16
+BASE_MODEL = "mms-1b-deu"
+PEFT_MODEL = "mms-1b-deu-cv13"
 TASK = Tasks.ASR
 LR = 1e-4
 CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
@@ -36,7 +36,6 @@ def get_dataset() -> datasets.Dataset:
     d_sets = d_sets.cast_column(
         column="audio", feature=datasets.features.Audio(sampling_rate=16000)
     )
-    d_sets = d_sets.shuffle(seed=48)
 
     print(d_sets)
 
@@ -51,7 +50,8 @@ def main():
         task=TASK,  # type: ignore
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
-        use_peft=True,
+        use_peft=False,
+        processor_name="flozi00/mms-1b-german-cv13",
     )
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
@@ -60,7 +60,7 @@ def main():
         task=TASK,  # type: ignore
         processor=processor,
         datas=cv_data,
-        max_audio_in_seconds=25,
+        max_audio_in_seconds=12,
         BATCH_SIZE=BATCH_SIZE,
     )
 

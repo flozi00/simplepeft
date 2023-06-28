@@ -6,6 +6,6 @@ librosa
 soundfile
 torch
 lightning
-gputil
 lion-pytorch
 unidecode
+deepspeed
