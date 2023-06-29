@@ -104,18 +104,15 @@ def get_model(
                 kwargs["llm_int8_skip_modules"] = model_conf.get(
                     "modules_to_save", None
                 )
+                kwargs["ignore_mismatched_sizes"] = True
 
             if bnb_compatible:
                 kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+                kwargs["device_map"] = "auto"
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
                 model_name,
-                device_map="auto",
-                max_memory={
-                    0: f"{int(torch.cuda.mem_get_info()[0]/1024**3)-4}GB",
-                    "cpu": "64GB",
-                },
                 config=conf,
                 trust_remote_code=True,
                 **kwargs,

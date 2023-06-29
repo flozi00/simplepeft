@@ -1,6 +1,5 @@
 from torch.optim.lr_scheduler import ExponentialLR
 import lightning.pytorch as pl
-import GPUtil
 import time
 
 
@@ -27,26 +26,10 @@ class lightningmodel(pl.LightningModule):
         outputs = self(**batch)
         loss = outputs.loss
 
-        # iterate over all gpus and log temperature and load, if temperature is above 74, wait 4 seconds to cool down
-        gpus = GPUtil.getGPUs()
-        for gpu_num in range(len(gpus)):
-            gpu = gpus[gpu_num]
-            self.log(
-                f"train/gpu_temp_{gpu_num}",
-                gpu.temperature,
-                prog_bar=True,
-                on_step=True,
-            )
-            self.log(
-                f"train/gpu_load_{gpu_num}", gpu.memoryUtil, prog_bar=True, on_step=True
-            )
-            if gpu.temperature >= 72:
-                time.sleep(10)
-
         self.log("train/loss", loss, prog_bar=True, on_step=True)
 
         if batch_idx % (100 * self.save_every_hours) == 0 and batch_idx != 0:
-            self.model.save_pretrained(self.model_name)
+            self.model.save_pretrained(self.model_name, safe_serialization=True)
 
         # push to hub every X hours
         if elapsed_time > (
@@ -54,7 +37,7 @@ class lightningmodel(pl.LightningModule):
         ):  # 6 hours (60 seconds * 60 minutes * hours)
             self.start_time = time.time()
             try:
-                self.model.push_to_hub(self.model_name)
+                self.model.push_to_hub(self.model_name, safe_serialization=True)
             except Exception as e:
                 print(e)
 
