@@ -9,3 +9,6 @@ lightning
 lion-pytorch
 unidecode
 deepspeed
+sentencepiece
+wandb
+gputil
