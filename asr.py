@@ -5,11 +5,11 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 16
-BASE_MODEL = "mms-1b-deu"
-PEFT_MODEL = "mms-1b-deu-cv13"
+BATCH_SIZE = 8
+BASE_MODEL = "aware-ai/wav2vec2-xls-r-1b-german-cv11"
+PEFT_MODEL = "wav2vec2-xls-r-1b-german-cv13"
 TASK = Tasks.ASR
-LR = 1e-4
+LR = 1e-5
 CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
 
 
@@ -37,8 +37,6 @@ def get_dataset() -> datasets.Dataset:
         column="audio", feature=datasets.features.Audio(sampling_rate=16000)
     )
 
-    print(d_sets)
-
     return d_sets
 
 
@@ -51,7 +49,7 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=False,
-        processor_name="flozi00/mms-1b-german-cv13",
+        processor_name="aware-ai/wav2vec2-xls-r-1b-german-cv11",
     )
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
@@ -60,7 +58,7 @@ def main():
         task=TASK,  # type: ignore
         processor=processor,
         datas=cv_data,
-        max_audio_in_seconds=12,
+        max_audio_in_seconds=16,
         BATCH_SIZE=BATCH_SIZE,
     )
 

@@ -40,7 +40,7 @@ def start_training(
             from deepspeed.ops.adam import DeepSpeedCPUAdam
 
             optim = DeepSpeedCPUAdam
-            strategy = "deepspeed_stage_2_offload"
+            strategy = "deepspeed_stage_3_offload"
         except:
             optim = Lion
     plmodel = lightningmodel(
