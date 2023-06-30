@@ -62,7 +62,7 @@ def main():
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=1024,
+        max_input_length=3072,
         text_key="conversations",
     )
 

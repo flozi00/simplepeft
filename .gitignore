@@ -140,3 +140,4 @@ huggingface/
 offload/
 *.model
 *.safetensors
+*.run

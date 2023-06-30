@@ -71,10 +71,13 @@ def get_model(
                 and use_peft is True
             )
 
-            # load the processor
-            processor = model_conf.get("processor").from_pretrained(
-                model_name if processor_name is None else processor_name
-            )
+            try:
+                processor = model_conf.get("processor").from_pretrained(peft_name)
+            except:
+                # load the processor
+                processor = model_conf.get("processor").from_pretrained(
+                    model_name if processor_name is None else processor_name
+                )
 
             # check if the model_type is whisper or mctct and set the config accordingly
             if model_type == "whisper":
@@ -155,7 +158,7 @@ def get_model(
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=32,
+                    r=16,
                     lora_alpha=64,
                     target_modules=model_conf.get("target_modules"),
                     lora_dropout=0.01,

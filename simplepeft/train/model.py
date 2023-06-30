@@ -29,20 +29,24 @@ class lightningmodel(pl.LightningModule):
 
         self.log("train/loss", loss, prog_bar=True, on_step=True)
 
-        gpus = GPUtil.getGPUs()
-        for gpu_num in range(len(gpus)):
-            gpu = gpus[gpu_num]
-            self.log(
-                f"train/gpu_temp_{gpu_num}",
-                gpu.temperature,
-                prog_bar=True,
-                on_step=True,
-            )
-            self.log(
-                f"train/gpu_load_{gpu_num}", gpu.memoryUtil, prog_bar=True, on_step=True
-            )
-            if gpu.temperature >= 72:
-                time.sleep(10)
+        for xyz in range(5):
+            gpus = GPUtil.getGPUs()
+            for gpu_num in range(len(gpus)):
+                gpu = gpus[gpu_num]
+                self.log(
+                    f"train/gpu_temp_{gpu_num}",
+                    gpu.temperature,
+                    prog_bar=True,
+                    on_step=True,
+                )
+                self.log(
+                    f"train/gpu_load_{gpu_num}",
+                    gpu.memoryUtil,
+                    prog_bar=True,
+                    on_step=True,
+                )
+                if gpu.temperature >= 72:
+                    time.sleep(5)
 
         if batch_idx % (100 * self.save_every_hours) == 0 and batch_idx != 0:
             self.model.save_pretrained(self.model_name)
