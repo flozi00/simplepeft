@@ -1,9 +1,13 @@
 import torch
 from ..models.speech import SPEECH_MODELS, TTS_MODELS
 from ..models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
-from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_training
+from peft import (
+    LoraConfig,
+    PeftModel,
+    get_peft_model,
+    prepare_model_for_kbit_training,
+)
 from transformers import AutoConfig, BitsAndBytesConfig
-import transformers
 from ..utils import Tasks
 
 try:
@@ -69,6 +73,7 @@ def get_model(
                 model_conf.get("8-bit") is True
                 and bnb_available is True
                 and use_peft is True
+                and push_to_hub is False
             )
 
             try:
@@ -110,8 +115,7 @@ def get_model(
                 kwargs["ignore_mismatched_sizes"] = True
 
             if bnb_compatible:
-                kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
-                kwargs["device_map"] = "auto"
+                kwargs["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True)
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
@@ -132,17 +136,14 @@ def get_model(
             if peft_name is not None:
                 # check if the model is 8-bit compatible and prepare it for 8-bit training
                 if bnb_compatible:
-                    print("Preparing model for 8-bit training")
-                    model = prepare_model_for_int8_training(
-                        model, use_gradient_checkpointing=True
-                    )
+                    print("Preparing model for K-bit training")
+                    model = prepare_model_for_kbit_training(model)
 
                 # create the lora config
                 peft_config = LoraConfig(
                     r=16,
-                    lora_alpha=64,
+                    lora_alpha=32,
                     target_modules=model_conf.get("target_modules"),
-                    lora_dropout=0.01,
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,
                     modules_to_save=model_conf.get("modules_to_save", None),

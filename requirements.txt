@@ -1,5 +1,5 @@
 transformers
-peft
+https://github.com/huggingface/peft/archive/refs/heads/main.zip
 datasets
 fire
 librosa

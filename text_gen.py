@@ -43,6 +43,21 @@ def get_dataset() -> datasets.Dataset:
     for x in ds3:
         all_rows.append(x["conversations"])
 
+    ds4 = datasets.load_dataset(
+        "SebastianBodza/Ger_WizardLM_evol_instruct_70k_V0", split="train"
+    )
+    for row in ds4:
+        all_rows.append(
+            f'{PROMPTER}{row["instructions"]}{END}{BOT}{row["outputs"]}{END}'  # type: ignore
+        )
+
+    ds5 = datasets.load_dataset("JosephusCheung/GuanacoDataset", split="train")
+    for row in ds5:
+        if "a" in {row["instruction"]} or "i" in {row["instruction"]}:
+            all_rows.append(
+                f'{PROMPTER}{row["input"]}\n{row["instruction"]}{END}{BOT}{row["output"]}{END}'  # type: ignore
+            )
+
     ds = datasets.Dataset.from_dict({"conversations": all_rows})
 
     return ds
@@ -62,7 +77,7 @@ def main():
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=3072,
+        max_input_length=1024,
         text_key="conversations",
     )
 
