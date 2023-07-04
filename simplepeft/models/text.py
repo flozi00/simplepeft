@@ -1,14 +1,21 @@
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    T5ForConditionalGeneration,
     AutoModelForSeq2SeqLM,
 )
 from peft import TaskType
 
 TEXT_TEXT_MODELS = {
     "t5": {
-        "class": T5ForConditionalGeneration,
+        "class": AutoModelForSeq2SeqLM,
+        "processor": AutoTokenizer,
+        "8-bit": True,
+        "target_modules": ["q", "v"],
+        "task_type": TaskType.SEQ_2_SEQ_LM,
+        "gradient_accumulation": 1,
+    },
+    "longt5": {
+        "class": AutoModelForSeq2SeqLM,
         "processor": AutoTokenizer,
         "8-bit": True,
         "target_modules": ["q", "v"],
@@ -24,7 +31,22 @@ TEXT_TEXT_MODELS = {
             "q_proj",
         ],
         "task_type": TaskType.SEQ_2_SEQ_LM,
-        "gradient_accumulation": 4,
+        "gradient_accumulation": 1,
+    },
+    "led": {
+        "class": AutoModelForSeq2SeqLM,
+        "processor": AutoTokenizer,
+        "8-bit": True,
+        "target_modules": [
+            "query",
+            "key",
+            "value",
+            "query_global",
+            "key_global",
+            "value_global",
+        ],
+        "task_type": TaskType.SEQ_2_SEQ_LM,
+        "gradient_accumulation": 1,
     },
 }
 
@@ -40,7 +62,7 @@ TEXT_GEN_MODELS = {
     "rwkv": {
         "class": AutoModelForCausalLM,
         "processor": AutoTokenizer,
-        "8-bit": False,
+        "8-bit": True,
         "target_modules": [
             "key",
             "value",

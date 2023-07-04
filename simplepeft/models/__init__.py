@@ -66,7 +66,7 @@ def get_model(
     kwargs = {}
     # check if the model_type is in the list of models
     for model_type in list_to_check:
-        if model_type.lower() in model_type_by_config.lower():
+        if model_type.lower() == model_type_by_config.lower():
             # get the model config
             model_conf = list_to_use[model_type]
             bnb_compatible = (
@@ -115,7 +115,9 @@ def get_model(
                 kwargs["ignore_mismatched_sizes"] = True
 
             if bnb_compatible:
-                kwargs["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True)
+                kwargs["quantization_config"] = BitsAndBytesConfig(
+                    load_in_4bit=True, bnb_4bit_use_double_quant=True
+                )
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(

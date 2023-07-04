@@ -1,66 +1,14 @@
-import datasets
+from chat_data import get_chat_dataset
 from simplepeft.data import get_dataloader
 from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
-BASE_MODEL = "openlm-research/open_llama_3b"
-PEFT_MODEL = "open_llama_3b-german-assistant"
+BASE_MODEL = "RWKV/rwkv-4-169m-pile"
+PEFT_MODEL = "rwkv-4-169m-german-assistant"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
-
-PROMPTER = "<|prompter|>"
-BOT = "<|assistant|>"
-END = "<|endoftext|>"
-
-
-def get_dataset() -> datasets.Dataset:
-    all_rows = []
-
-    ds2 = datasets.load_dataset(
-        "philschmid/translated_tasks_de_google_52k", split="train"
-    )
-    for row in ds2:
-        if len(row["input"]) > 128:  # type: ignore
-            all_rows.append(
-                f'{PROMPTER}{row["instruction"]} {row["input"]} {END}{BOT}{row["output"]}{END}'  # type: ignore
-            )
-
-    ds2 = datasets.load_dataset(
-        "argilla/databricks-dolly-15k-curated-multilingual", split="de+en"
-    )
-    for row in ds2:
-        if len(row["context"]) > 128:  # type: ignore
-            all_rows.append(
-                f'{PROMPTER}{row["instruction"]} {row["context"]} {END}{BOT}{row["response"]}{END}'  # type: ignore
-            )
-
-    ds3 = datasets.load_dataset(
-        "flozi00/openassistant-oasst1-flattened-filtered", split="train"
-    ).filter(lambda example: example["lang"] in ["de", "en"])
-
-    for x in ds3:
-        all_rows.append(x["conversations"])
-
-    ds4 = datasets.load_dataset(
-        "SebastianBodza/Ger_WizardLM_evol_instruct_70k_V0", split="train"
-    )
-    for row in ds4:
-        all_rows.append(
-            f'{PROMPTER}{row["instructions"]}{END}{BOT}{row["outputs"]}{END}'  # type: ignore
-        )
-
-    ds5 = datasets.load_dataset("JosephusCheung/GuanacoDataset", split="train")
-    for row in ds5:
-        if "a" in {row["instruction"]} or "i" in {row["instruction"]}:
-            all_rows.append(
-                f'{PROMPTER}{row["input"]}\n{row["instruction"]}{END}{BOT}{row["output"]}{END}'  # type: ignore
-            )
-
-    ds = datasets.Dataset.from_dict({"conversations": all_rows})
-
-    return ds
 
 
 def main():
@@ -69,7 +17,7 @@ def main():
         task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=True  # type: ignore
     )
 
-    cv_data = get_dataset()
+    cv_data = get_chat_dataset()
 
     # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(
