@@ -25,14 +25,6 @@ def get_chat_dataset(T2T=False) -> datasets.Dataset:
     for x in ds3:
         all_rows.append(x["conversations"])
 
-    ds4 = datasets.load_dataset(
-        "SebastianBodza/Ger_WizardLM_evol_instruct_70k_V0", split="train"
-    )
-    for row in ds4:
-        all_rows.append(
-            f'{PROMPTER}{row["instructions"]}{END}{BOT}{row["outputs"]}{END}'  # type: ignore
-        )
-
     if T2T is True:
         T2T_ROWS = []
         T2T_ANSWERS = []
