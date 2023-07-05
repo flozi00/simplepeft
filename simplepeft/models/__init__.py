@@ -150,8 +150,8 @@ def get_model(
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=16,
-                    lora_alpha=32,
+                    r=32,
+                    lora_alpha=64,
                     target_modules=model_conf.get("target_modules"),
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,

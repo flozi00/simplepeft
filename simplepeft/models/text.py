@@ -2,6 +2,7 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     AutoModelForSeq2SeqLM,
+    LlamaTokenizer,
 )
 from peft import TaskType
 
@@ -57,7 +58,7 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["v_proj", "q_proj"],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 4,
+        "gradient_accumulation": 16,
     },
     "rwkv": {
         "class": AutoModelForCausalLM,
@@ -68,7 +69,7 @@ TEXT_GEN_MODELS = {
             "value",
         ],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 4,
+        "gradient_accumulation": 16,
     },
     "gpt_neox": {
         "class": AutoModelForCausalLM,
@@ -76,7 +77,7 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["query_key_value"],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 4,
+        "gradient_accumulation": 16,
     },
     "RefinedWebModel": {
         "class": AutoModelForCausalLM,
@@ -84,11 +85,11 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["query_key_value"],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 4,
+        "gradient_accumulation": 16,
     },
     "llama": {
         "class": AutoModelForCausalLM,
-        "processor": AutoTokenizer,
+        "processor": LlamaTokenizer,
         "8-bit": True,
         "target_modules": [
             "gate_proj",
@@ -100,6 +101,6 @@ TEXT_GEN_MODELS = {
             "o_proj",
         ],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 4,
+        "gradient_accumulation": 16,
     },
 }

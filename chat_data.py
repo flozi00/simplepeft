@@ -9,20 +9,24 @@ END = "<|endoftext|>"
 def get_chat_dataset(T2T=False) -> datasets.Dataset:
     all_rows = []
 
-    ds2 = datasets.load_dataset(
+    ds = datasets.load_dataset(
         "argilla/databricks-dolly-15k-curated-multilingual", split="de+en"
     )
-    for row in ds2:
+    for row in ds:
         if len(row["context"]) > 128:  # type: ignore
             all_rows.append(
                 f'{PROMPTER}{row["instruction"]} {row["context"]} {END}{BOT}{row["response"]}{END}'  # type: ignore
             )
 
-    ds3 = datasets.load_dataset(
+    ds = datasets.load_dataset(
         "flozi00/openassistant-oasst1-flattened-filtered", split="train"
     ).filter(lambda example: example["lang"] in ["de", "en"])
 
-    for x in ds3:
+    for x in ds:
+        all_rows.append(x["conversations"])
+
+    ds = datasets.load_dataset("flozi00/german-conversations", split="train")
+    for x in ds:
         all_rows.append(x["conversations"])
 
     if T2T is True:
