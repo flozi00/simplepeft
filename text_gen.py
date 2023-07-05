@@ -5,8 +5,8 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
-BASE_MODEL = "RWKV/rwkv-4-169m-pile"
-PEFT_MODEL = "rwkv-4-169m-german-assistant"
+BASE_MODEL = "RWKV/rwkv-raven-3b"
+PEFT_MODEL = "rwkv-raven-3b-german-assistant"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
 

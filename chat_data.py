@@ -1,4 +1,5 @@
 import datasets
+from tqdm.auto import tqdm
 
 PROMPTER = "<|prompter|>"
 BOT = "<|assistant|>"
@@ -7,15 +8,6 @@ END = "<|endoftext|>"
 
 def get_chat_dataset(T2T=False) -> datasets.Dataset:
     all_rows = []
-
-    ds2 = datasets.load_dataset(
-        "philschmid/translated_tasks_de_google_52k", split="train"
-    )
-    for row in ds2:
-        if len(row["input"]) > 128:  # type: ignore
-            all_rows.append(
-                f'{PROMPTER}{row["instruction"]} {row["input"]} {END}{BOT}{row["output"]}{END}'  # type: ignore
-            )
 
     ds2 = datasets.load_dataset(
         "argilla/databricks-dolly-15k-curated-multilingual", split="de+en"
@@ -41,17 +33,10 @@ def get_chat_dataset(T2T=False) -> datasets.Dataset:
             f'{PROMPTER}{row["instructions"]}{END}{BOT}{row["outputs"]}{END}'  # type: ignore
         )
 
-    ds5 = datasets.load_dataset("JosephusCheung/GuanacoDataset", split="train")
-    for row in ds5:
-        if "a" in {row["instruction"]} or "i" in {row["instruction"]}:
-            all_rows.append(
-                f'{PROMPTER}{row["input"]}\n{row["instruction"]}{END}{BOT}{row["output"]}{END}'  # type: ignore
-            )
-
     if T2T is True:
         T2T_ROWS = []
         T2T_ANSWERS = []
-        for row in all_rows:
+        for row in tqdm(all_rows):
             messages = row.split(END)
             for m in range(0, len(messages) - 1):
                 T2T_ROWS.append(END.join(messages[: m + 1]))

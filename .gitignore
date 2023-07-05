@@ -141,3 +141,4 @@ offload/
 *.model
 *.safetensors
 *.run
+*/*.md

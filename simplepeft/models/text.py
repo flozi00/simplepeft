@@ -68,7 +68,7 @@ TEXT_GEN_MODELS = {
             "value",
         ],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 1,
+        "gradient_accumulation": 4,
     },
     "gpt_neox": {
         "class": AutoModelForCausalLM,

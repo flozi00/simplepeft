@@ -139,7 +139,9 @@ def get_model(
                 # check if the model is 8-bit compatible and prepare it for 8-bit training
                 if bnb_compatible:
                     print("Preparing model for K-bit training")
-                    model = prepare_model_for_kbit_training(model)
+                    model = prepare_model_for_kbit_training(
+                        model, use_gradient_checkpointing=False
+                    )
 
                 # create the lora config
                 peft_config = LoraConfig(
