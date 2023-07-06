@@ -143,7 +143,8 @@ def get_model(
                         model = prepare_model_for_kbit_training(
                             model, use_gradient_checkpointing=True
                         )
-                    except:
+                    except Exception as e:
+                        print(e)
                         model = prepare_model_for_kbit_training(
                             model, use_gradient_checkpointing=False
                         )

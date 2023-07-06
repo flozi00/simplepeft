@@ -60,7 +60,7 @@ def start_training(
         logger=_logger,
         log_every_n_steps=1,
         precision=16,
-        accumulate_grad_batches=model_conf.get("gradient_accumulation", 1),
+        accumulate_grad_batches=4,
         callbacks=[lr_monitor],
         strategy=strategy,
         gradient_clip_val=0.7,

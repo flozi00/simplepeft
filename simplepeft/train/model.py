@@ -61,7 +61,7 @@ class lightningmodel(pl.LightningModule):
             except Exception as e:
                 print(e)
 
-        if batch_idx % 10 == 0 and batch_idx >= 500:
+        if batch_idx >= 500:
             self.lr_schedulers().step()
 
         return loss

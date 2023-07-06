@@ -4,11 +4,11 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 1
-BASE_MODEL = "openlm-research/open_llama_13b"
-PEFT_MODEL = "open_llama_13b-german-assistant"
+BATCH_SIZE = 8
+BASE_MODEL = "openlm-research/open_llama_3b"
+PEFT_MODEL = "open_llama_3b-german-assistant"
 TASK = Tasks.TEXT_GEN
-LR = 1e-5
+LR = 1e-4
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=2048,
+        max_input_length=1024,
         text_key="conversations",
     )
 

@@ -13,7 +13,6 @@ TEXT_TEXT_MODELS = {
         "8-bit": True,
         "target_modules": ["q", "v"],
         "task_type": TaskType.SEQ_2_SEQ_LM,
-        "gradient_accumulation": 1,
     },
     "longt5": {
         "class": AutoModelForSeq2SeqLM,
@@ -21,7 +20,6 @@ TEXT_TEXT_MODELS = {
         "8-bit": True,
         "target_modules": ["q", "v"],
         "task_type": TaskType.SEQ_2_SEQ_LM,
-        "gradient_accumulation": 1,
     },
     "bart": {
         "class": AutoModelForSeq2SeqLM,
@@ -32,7 +30,6 @@ TEXT_TEXT_MODELS = {
             "q_proj",
         ],
         "task_type": TaskType.SEQ_2_SEQ_LM,
-        "gradient_accumulation": 1,
     },
     "led": {
         "class": AutoModelForSeq2SeqLM,
@@ -47,7 +44,6 @@ TEXT_TEXT_MODELS = {
             "value_global",
         ],
         "task_type": TaskType.SEQ_2_SEQ_LM,
-        "gradient_accumulation": 1,
     },
 }
 
@@ -58,7 +54,6 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["v_proj", "q_proj"],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 16,
     },
     "rwkv": {
         "class": AutoModelForCausalLM,
@@ -69,7 +64,6 @@ TEXT_GEN_MODELS = {
             "value",
         ],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 16,
     },
     "gpt_neox": {
         "class": AutoModelForCausalLM,
@@ -77,7 +71,6 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["query_key_value"],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 16,
     },
     "RefinedWebModel": {
         "class": AutoModelForCausalLM,
@@ -85,7 +78,6 @@ TEXT_GEN_MODELS = {
         "8-bit": True,
         "target_modules": ["query_key_value"],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 16,
     },
     "llama": {
         "class": AutoModelForCausalLM,
@@ -101,6 +93,5 @@ TEXT_GEN_MODELS = {
             "o_proj",
         ],
         "task_type": TaskType.CAUSAL_LM,
-        "gradient_accumulation": 16,
     },
 }
