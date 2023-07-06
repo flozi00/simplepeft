@@ -49,7 +49,7 @@ def start_training(
         processor=processor,
         optim=optim,
         lr=LR,
-        save_every_hours=1 if model_conf["is_peft"] else 6,
+        save_every_hours=6 if model_conf["is_peft"] else 12,
     )
 
     _logger = WandbLogger(project="huggingface", name=PEFT_MODEL)
