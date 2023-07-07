@@ -48,7 +48,7 @@ class lightningmodel(pl.LightningModule):
                 if gpu.temperature >= 72:
                     time.sleep(5)
 
-        if batch_idx % (100 * self.save_every_hours) == 0 and batch_idx != 0:
+        if batch_idx % 250 == 0 and batch_idx != 0:
             self.model.save_pretrained(self.model_name)
 
         # push to hub every X hours

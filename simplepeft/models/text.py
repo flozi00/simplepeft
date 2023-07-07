@@ -76,7 +76,13 @@ TEXT_GEN_MODELS = {
         "class": AutoModelForCausalLM,
         "processor": AutoTokenizer,
         "8-bit": True,
-        "target_modules": ["query_key_value"],
+        "target_modules": [
+            "query_key_value",
+            "dense",
+            "dense_h_to_4h",
+            "dense_4h_to_h",
+            "lm_head",
+        ],
         "task_type": TaskType.CAUSAL_LM,
     },
     "llama": {

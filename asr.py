@@ -60,6 +60,7 @@ def main():
         datas=cv_data,
         max_audio_in_seconds=16,
         BATCH_SIZE=BATCH_SIZE,
+        batch_size=BATCH_SIZE,
     )
 
     # start the training

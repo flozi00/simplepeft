@@ -11,12 +11,7 @@ warnings.simplefilter("ignore")
 
 
 def start_training(
-    model,
-    processor,
-    dloader,
-    PEFT_MODEL,
-    LR: float,
-    model_conf: dict,
+    model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict, batch_size: int
 ):
     """Generating the training loop for the model, using pytorch lightning#
     Building the lightning module and the trainer for the model automatically
@@ -60,7 +55,7 @@ def start_training(
         logger=_logger,
         log_every_n_steps=1,
         precision=16,
-        accumulate_grad_batches=4,
+        accumulate_grad_batches=1 if batch_size >= 64 else int(64 / batch_size),
         callbacks=[lr_monitor],
         strategy=strategy,
         gradient_clip_val=0.7,

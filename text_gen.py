@@ -4,9 +4,9 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 1
-BASE_MODEL = "OpenBuddy/openbuddy-openllama-13b-v7-fp16"
-PEFT_MODEL = "openllama-13b-german-assistant"
+BATCH_SIZE = 2
+BASE_MODEL = "OpenAssistant/falcon-7b-sft-mix-2000"
+PEFT_MODEL = "falcon-7b-german-assistant"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
 
@@ -25,7 +25,7 @@ def main():
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=2048,
+        max_input_length=512 * 4,
         text_key="conversations",
     )
 
@@ -37,6 +37,7 @@ def main():
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         model_conf=model_conf,
+        batch_size=BATCH_SIZE,
     )
 
 

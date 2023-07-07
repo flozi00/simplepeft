@@ -42,6 +42,7 @@ def main():
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         model_conf=model_conf,
+        batch_size=BATCH_SIZE,
     )
 
 
