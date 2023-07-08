@@ -45,8 +45,8 @@ class lightningmodel(pl.LightningModule):
                     prog_bar=True,
                     on_step=True,
                 )
-                if gpu.temperature >= 72:
-                    time.sleep(5)
+                if gpu.temperature >= 68:
+                    time.sleep(10)
 
         if batch_idx % 250 == 0 and batch_idx != 0:
             self.model.save_pretrained(self.model_name)

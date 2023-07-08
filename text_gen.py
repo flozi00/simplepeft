@@ -4,11 +4,11 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 2
-BASE_MODEL = "OpenAssistant/falcon-7b-sft-mix-2000"
+BATCH_SIZE = 4
+BASE_MODEL = "flozi00/falcon-7b-german-assistant"
 PEFT_MODEL = "falcon-7b-german-assistant"
 TASK = Tasks.TEXT_GEN
-LR = 1e-4
+LR = 3e-5
 
 
 def main():
