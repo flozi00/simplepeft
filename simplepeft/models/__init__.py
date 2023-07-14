@@ -188,7 +188,9 @@ def get_model(
             if push_to_hub:
                 processor.push_to_hub(peft_name.split(sep="/")[-1])
                 model.half()
-                model.push_to_hub(peft_name.split(sep="/")[-1], safe_serialization=True)
+                model.push_to_hub(
+                    peft_name.split(sep="/")[-1], safe_serialization=False
+                )  # because falcon need shared tensor which gets removed
 
             model_conf["is8bit"] = bnb_compatible
             model_conf["is_peft"] = use_peft
