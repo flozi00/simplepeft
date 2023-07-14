@@ -55,7 +55,7 @@ def start_training(
         logger=_logger,
         log_every_n_steps=1,
         precision=16,
-        accumulate_grad_batches=1 if batch_size >= 64 else int(64 / batch_size),
+        accumulate_grad_batches=1 if batch_size >= 4 else int(4 / batch_size),
         callbacks=[lr_monitor],
         strategy=strategy,
         gradient_clip_val=0.7,

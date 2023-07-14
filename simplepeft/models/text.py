@@ -81,8 +81,6 @@ TEXT_GEN_MODELS = {
             "dense",
             "dense_h_to_4h",
             "dense_4h_to_h",
-            "lm_head",
-            "word_embeddings",
         ],
         "task_type": TaskType.CAUSAL_LM,
     },

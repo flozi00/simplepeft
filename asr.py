@@ -16,7 +16,6 @@ CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
 # generate the dataset from the common voice dataset saved locally and load it as a dataset object
 # the dataset is filtered to only contain sentences with more than 5 characters and at least 2 upvotes and no downvotes
 # the audio is casted to the Audio feature of the datasets library with a sampling rate of 16000
-# the dataset is shuffled with a seed of 48
 def get_dataset() -> datasets.Dataset:
     df = pd.read_table(filepath_or_buffer=f"{CV_DATA_PATH}validated.tsv")
     df["audio"] = f"{CV_DATA_PATH}clips/" + df["path"].astype(dtype=str)
