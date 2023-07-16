@@ -120,6 +120,9 @@ def get_model(
                     bnb_4bit_use_double_quant=True,
                     bnb_4bit_compute_dtype=torch.float16,
                 )
+                kwargs[
+                    "max_memory"
+                ] = f"{int(torch.cuda.mem_get_info()[0]/1024**3)-6}GB"
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
