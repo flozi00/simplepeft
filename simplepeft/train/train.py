@@ -4,11 +4,14 @@ import warnings
 from tqdm.auto import tqdm
 import time
 import GPUtil
+from torch.optim.lr_scheduler import ExponentialLR
 
 warnings.simplefilter("ignore")
 
-accelerator = Accelerator()
+accelerator = Accelerator(gradient_accumulation_steps=4, log_with="wandb")
 device = accelerator.device
+
+accelerator.init_trackers("huggingface")
 
 
 def start_training(
@@ -32,12 +35,15 @@ def start_training(
     else:
         optim = Lion(model.parameters(), lr=LR)
 
-    model, optim, dloader = accelerator.prepare(model, optim, dloader)
+    scheduler = ExponentialLR(optim, gamma=0.9)
+    model, optim, dloader, scheduler = accelerator.prepare(
+        model, optim, dloader, scheduler
+    )
 
     model.train()
-    for epoch in range(10):
-        index = 0
-        for data in tqdm(dloader):
+    index = 0
+    for data in tqdm(dloader):
+        with accelerator.accumulate(model):
             index += 1
             if index % 100 == 0:
                 model.save_pretrained(
@@ -48,10 +54,10 @@ def start_training(
             optim.zero_grad()
             output = model(return_dict=True, **data)
             loss = output.loss
-            total_loss = loss.detach().float()
-            print(total_loss)
             accelerator.backward(loss)
             optim.step()
+            scheduler.step()
+            accelerator.log({"training_loss": loss}, step=index)
 
             for xyz in range(10):
                 gpus = GPUtil.getGPUs()
