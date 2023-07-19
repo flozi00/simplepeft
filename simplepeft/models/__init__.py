@@ -9,6 +9,8 @@ from peft import (
 )
 from transformers import AutoConfig, BitsAndBytesConfig
 from ..utils import Tasks
+from optimum.bettertransformer import BetterTransformer
+
 
 try:
     import bitsandbytes as bnb
@@ -119,6 +121,7 @@ def get_model(
                     load_in_4bit=True,
                     bnb_4bit_use_double_quant=True,
                     bnb_4bit_compute_dtype=torch.float16,
+                    bnb_4bit_quant_type="nf4",
                 )
                 kwargs[
                     "max_memory"
@@ -131,6 +134,11 @@ def get_model(
                 trust_remote_code=True,
                 **kwargs,
             )
+
+            try:
+                model = BetterTransformer.transform(model)
+            except Exception as e:
+                print(e)
 
             try:
                 if processor.pad_token is None:

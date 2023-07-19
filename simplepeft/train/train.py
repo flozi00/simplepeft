@@ -1,13 +1,12 @@
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks import LearningRateMonitor
-from lightning.pytorch.loggers import WandbLogger
 from lion_pytorch import Lion
-
-from ..train.model import lightningmodel
-
+from accelerate import Accelerator
 import warnings
+from tqdm.auto import tqdm
 
 warnings.simplefilter("ignore")
+
+accelerator = Accelerator()
+device = accelerator.device
 
 
 def start_training(
@@ -24,40 +23,29 @@ def start_training(
         LR (float): The learning rate
         model_conf (dict): The model configuration from this library
     """
-    strategy = "auto"
-
     if model_conf["is8bit"]:
         from bitsandbytes.optim import PagedLion
 
-        optim = PagedLion
+        optim = PagedLion(model.parameters(), lr=LR)
     else:
-        try:
-            from deepspeed.ops.adam import DeepSpeedCPUAdam
+        optim = Lion(model.parameters(), lr=LR)
 
-            optim = DeepSpeedCPUAdam
-            strategy = "deepspeed_stage_3_offload"
-        except:
-            optim = Lion
-    plmodel = lightningmodel(
-        model_name=PEFT_MODEL,
-        model=model,
-        processor=processor,
-        optim=optim,
-        lr=LR,
-        save_every_hours=6 if model_conf["is_peft"] else 12,
-    )
+    model, optim, dloader = accelerator.prepare(model, optim, dloader)
 
-    _logger = WandbLogger(project="huggingface", name=PEFT_MODEL)
-
-    lr_monitor = LearningRateMonitor(logging_interval="step")
-
-    trainer = pl.Trainer(
-        logger=_logger,
-        log_every_n_steps=1,
-        precision=16,
-        accumulate_grad_batches=1 if batch_size >= 4 else int(4 / batch_size),
-        callbacks=[lr_monitor],
-        strategy=strategy,
-        gradient_clip_val=0.7,
-    )
-    trainer.fit(model=plmodel, train_dataloaders=dloader)
+    model.train()
+    for epoch in range(10):
+        index = 0
+        for data in tqdm(dloader):
+            index += 1
+            if index % 500 == 0:
+                model.save_pretrained(
+                    PEFT_MODEL,
+                    save_function=accelerator.save,
+                    state_dict=accelerator.get_state_dict(model),
+                )
+            optim.zero_grad()
+            output = model(return_dict=True, **data)
+            loss = output.loss
+            print(loss)
+            accelerator.backward(loss)
+            optim.step()

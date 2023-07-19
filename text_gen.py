@@ -5,8 +5,8 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
-BASE_MODEL = "openlm-research/open_llama_7b_v2"
-PEFT_MODEL = "open_llama_7b_v2-german-assistant"
+BASE_MODEL = "TheBloke/Llama-2-7B-fp16"
+PEFT_MODEL = "Llama-2-7B-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
 LR = 3e-5
 
@@ -19,7 +19,7 @@ def main():
         task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=True  # type: ignore
     )
 
-    model.config.rope_scaling = {"type": "dynamic", "factor": ROPE_FAKTOR}
+    # model.config.rope_scaling = {"type": "dynamic", "factor": ROPE_FAKTOR}
 
     cv_data = get_chat_dataset()
 

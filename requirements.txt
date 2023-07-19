@@ -5,10 +5,7 @@ fire
 librosa
 soundfile
 torch
-lightning
 lion-pytorch
 unidecode
 deepspeed
 sentencepiece
-wandb
-gputil
