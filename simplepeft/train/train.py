@@ -35,7 +35,7 @@ def start_training(
     else:
         optim = Lion(model.parameters(), lr=LR)
 
-    scheduler = ExponentialLR(optim, gamma=0.9)
+    scheduler = ExponentialLR(optim, gamma=0.98)
     model, optim, dloader, scheduler = accelerator.prepare(
         model, optim, dloader, scheduler
     )
