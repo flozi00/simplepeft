@@ -197,7 +197,7 @@ def get_model(
                 peft_name = model_name
 
             if push_to_hub:
-                BetterTransformer.reverse(model)
+                model = BetterTransformer.reverse(model)
                 processor.push_to_hub(peft_name.split(sep="/")[-1])
                 model.half()
                 model.push_to_hub(
