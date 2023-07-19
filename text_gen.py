@@ -5,10 +5,10 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
 BATCH_SIZE = 1
-BASE_MODEL = "TheBloke/Llama-2-7B-fp16"
-PEFT_MODEL = "Llama-2-7B-german-assistant-v1"
+BASE_MODEL = "TheBloke/Llama-2-13B-Chat-fp16"
+PEFT_MODEL = "Llama-2-13B-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
-LR = 3e-5
+LR = 1e-5
 
 ROPE_FAKTOR = 2
 

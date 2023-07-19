@@ -9,3 +9,4 @@ lion-pytorch
 unidecode
 deepspeed
 sentencepiece
+gputil

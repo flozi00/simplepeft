@@ -2,6 +2,8 @@ from lion_pytorch import Lion
 from accelerate import Accelerator
 import warnings
 from tqdm.auto import tqdm
+import time
+import GPUtil
 
 warnings.simplefilter("ignore")
 
@@ -37,7 +39,7 @@ def start_training(
         index = 0
         for data in tqdm(dloader):
             index += 1
-            if index % 500 == 0:
+            if index % 100 == 0:
                 model.save_pretrained(
                     PEFT_MODEL,
                     save_function=accelerator.save,
@@ -46,6 +48,14 @@ def start_training(
             optim.zero_grad()
             output = model(return_dict=True, **data)
             loss = output.loss
-            print(loss)
+            total_loss = loss.detach().float()
+            print(total_loss)
             accelerator.backward(loss)
             optim.step()
+
+            for xyz in range(10):
+                gpus = GPUtil.getGPUs()
+                for gpu_num in range(len(gpus)):
+                    gpu = gpus[gpu_num]
+                    if gpu.temperature >= 68:
+                        time.sleep(3)
