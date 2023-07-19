@@ -5,7 +5,7 @@ from chat_data import get_chat_dataset
 BITS = 3
 
 pretrained_model_dir = "flozi00/falcon-7b-german-assistant-v2"
-quantized_model_dir = f"{pretrained_model_dir.split('/')[-1]}-{BITS}bit"
+quantized_model_dir = f"{pretrained_model_dir.split('/')[-1]}-{BITS}bit-autogptq"
 
 cv_data = get_chat_dataset().select(range(100))
 
@@ -20,7 +20,10 @@ quantize_config = BaseQuantizeConfig(
 
 # load un-quantized model, by default, the model will always be loaded into CPU memory
 model = AutoGPTQForCausalLM.from_pretrained(
-    pretrained_model_dir, quantize_config, max_memory={"0": "12GB", "cpu": "64GB"}
+    pretrained_model_dir,
+    quantize_config,
+    max_memory={"0": "12GB", "cpu": "64GB"},
+    trust_remote_code=True,
 )
 
 # quantize model, the examples should be list of dict whose keys can only be "input_ids" and "attention_mask"
