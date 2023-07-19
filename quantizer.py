@@ -22,7 +22,7 @@ quantize_config = BaseQuantizeConfig(
 model = AutoGPTQForCausalLM.from_pretrained(
     pretrained_model_dir,
     quantize_config,
-    max_memory={"0": "12GB", "cpu": "64GB"},
+    max_memory={0: "12GB", "cpu": "64GB"},
     trust_remote_code=True,
 )
 
