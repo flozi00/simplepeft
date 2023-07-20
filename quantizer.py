@@ -15,7 +15,7 @@ examples = [tokenizer(data["conversations"]) for data in cv_data]
 quantize_config = BaseQuantizeConfig(
     bits=BITS,  # quantize model to 4-bit
     group_size=128,  # it is recommended to set the value to 128
-    desc_act=True,  # set to False can significantly speed up inference but the perplexity may slightly bad
+    desc_act=False,  # set to False can significantly speed up inference but the perplexity may slightly bad
 )
 
 # load un-quantized model, by default, the model will always be loaded into CPU memory
