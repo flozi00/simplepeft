@@ -132,6 +132,7 @@ def get_model(
                 model_name,
                 config=conf,
                 trust_remote_code=True,
+                torch_dtype=torch.float16,
                 **kwargs,
             )
 
