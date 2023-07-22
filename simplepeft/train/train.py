@@ -13,6 +13,8 @@ device = accelerator.device
 
 accelerator.init_trackers("huggingface")
 
+TEMP_LIMIT = 72
+
 
 def start_training(
     model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict, batch_size: int
@@ -62,6 +64,6 @@ def start_training(
             gpus = GPUtil.getGPUs()
             for gpu_num in range(len(gpus)):
                 gpu = gpus[gpu_num]
-                if gpu.temperature >= 68:
-                    faktor = int(gpu.temperature) - 68
+                if gpu.temperature >= TEMP_LIMIT:
+                    faktor = int(gpu.temperature) - TEMP_LIMIT
                     time.sleep(faktor * 10)

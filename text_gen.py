@@ -4,9 +4,9 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 
-BATCH_SIZE = 3
-BASE_MODEL = "meta-llama/Llama-2-7b-chat-hf"
-PEFT_MODEL = "Llama-2-7b-german-assistant-v1"
+BATCH_SIZE = 1
+BASE_MODEL = "flozi00/Llama-2-13B-german-assistant-v2"
+PEFT_MODEL = "Llama-2-13B-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
