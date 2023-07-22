@@ -13,6 +13,7 @@ def convert_model(BITS, model):
     cv_data = get_chat_dataset().select(range(100))
 
     tokenizer = AutoTokenizer.from_pretrained(pretrained_model_dir, use_fast=True)
+    tokenizer.push_to_hub(repo_id=quantized_model_dir)
     examples = [tokenizer(data["conversations"]) for data in cv_data]
 
     quantize_config = BaseQuantizeConfig(
