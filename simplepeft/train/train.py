@@ -59,9 +59,9 @@ def start_training(
             scheduler.step()
             accelerator.log({"training_loss": loss}, step=index)
 
-            for xyz in range(10):
-                gpus = GPUtil.getGPUs()
-                for gpu_num in range(len(gpus)):
-                    gpu = gpus[gpu_num]
-                    if gpu.temperature >= 68:
-                        time.sleep(3)
+            gpus = GPUtil.getGPUs()
+            for gpu_num in range(len(gpus)):
+                gpu = gpus[gpu_num]
+                if gpu.temperature >= 68:
+                    faktor = int(gpu.temperature) - 68
+                    time.sleep(faktor * 10)

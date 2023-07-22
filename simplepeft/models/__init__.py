@@ -197,12 +197,15 @@ def get_model(
                 peft_name = model_name
 
             if push_to_hub:
+                PUSH_NAME = peft_name.split(sep="/")[-1]
                 model = BetterTransformer.reverse(model)
-                processor.push_to_hub(peft_name.split(sep="/")[-1])
                 model.half()
-                model.push_to_hub(
-                    peft_name.split(sep="/")[-1], safe_serialization=False
-                )  # because falcon need shared tensor which gets removed
+
+                model.save_pretrained(PUSH_NAME)
+                processor.save_pretrained(PUSH_NAME)
+
+                model.push_to_hub(PUSH_NAME, safe_serialization=False)
+                processor.push_to_hub(PUSH_NAME)
 
             model_conf["is8bit"] = bnb_compatible
             model_conf["is_peft"] = use_peft
