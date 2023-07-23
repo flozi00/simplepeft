@@ -3,9 +3,10 @@ from simplepeft.data import get_dataloader
 from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
+from datasets import Dataset
 
 BATCH_SIZE = 1
-BASE_MODEL = "flozi00/Llama-2-13B-german-assistant-v2"
+BASE_MODEL = "meta-llama/Llama-2-13b-chat-hf"
 PEFT_MODEL = "Llama-2-13B-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
@@ -21,7 +22,16 @@ def main():
 
     # model.config.rope_scaling = {"type": "dynamic", "factor": ROPE_FAKTOR}
 
-    cv_data = get_chat_dataset()
+    cv_data: Dataset = get_chat_dataset()
+
+    def edit_special_tokens(example):
+        example["conversations"] = example["conversations"].replace(
+            "<|endoftext|>", processor.eos_token
+        )
+
+        return example
+
+    cv_data = cv_data.map(edit_special_tokens)
 
     # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(

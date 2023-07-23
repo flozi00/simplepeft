@@ -8,28 +8,19 @@ from torch.optim.lr_scheduler import ExponentialLR
 
 warnings.simplefilter("ignore")
 
-accelerator = Accelerator(gradient_accumulation_steps=4, log_with="wandb")
-device = accelerator.device
-
-accelerator.init_trackers("huggingface")
-
 TEMP_LIMIT = 72
+ACCUMULATION_STEPS = 4
 
 
 def start_training(
     model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict, batch_size: int
 ):
-    """Generating the training loop for the model, using pytorch lightning#
-    Building the lightning module and the trainer for the model automatically
+    accelerator = Accelerator(
+        gradient_accumulation_steps=ACCUMULATION_STEPS, log_with="wandb"
+    )
+    device = accelerator.device
+    accelerator.init_trackers("huggingface")
 
-    Args:
-        model (_type_): The model to train, from this library
-        processor (_type_): The processor from the model
-        dloader (_type_): The pytorch dataloader
-        PEFT_MODEL (_type_): The name of the model to be saved as
-        LR (float): The learning rate
-        model_conf (dict): The model configuration from this library
-    """
     if model_conf["is8bit"]:
         from bitsandbytes.optim import PagedLion
 
@@ -44,7 +35,7 @@ def start_training(
 
     model.train()
     index = 0
-    for data in tqdm(dloader):
+    for data in (pbar := tqdm(dloader)):
         with accelerator.accumulate(model):
             index += 1
             if index % 100 == 0:
@@ -60,6 +51,7 @@ def start_training(
             optim.step()
             scheduler.step()
             accelerator.log({"training_loss": loss}, step=index)
+            pbar.set_description(f"Loss: {loss}", refresh=True)
 
             gpus = GPUtil.getGPUs()
             for gpu_num in range(len(gpus)):
