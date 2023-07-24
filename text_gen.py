@@ -5,7 +5,7 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 from datasets import Dataset
 
-BATCH_SIZE = 3
+BATCH_SIZE = 2
 BASE_MODEL = "flozi00/Llama-2-7b-german-assistant-v1"
 PEFT_MODEL = "Llama-2-7b-german-assistant-v2"
 TASK = Tasks.TEXT_GEN
