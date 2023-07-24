@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 warnings.simplefilter("ignore")
 
 TEMP_LIMIT = 72
-ACCUMULATION_STEPS = 4
+ACCUMULATION_STEPS = 2
 
 
 def start_training(
@@ -22,9 +22,9 @@ def start_training(
     accelerator.init_trackers("huggingface")
 
     if model_conf["is8bit"]:
-        from bitsandbytes.optim import PagedLion
+        from bitsandbytes.optim import PagedAdamW8bit
 
-        optim = PagedLion(model.parameters(), lr=LR)
+        optim = PagedAdamW8bit(model.parameters(), lr=LR)
     else:
         optim = Lion(model.parameters(), lr=LR)
 
@@ -50,7 +50,7 @@ def start_training(
             accelerator.backward(loss)
             optim.step()
             scheduler.step()
-            accelerator.log({"training_loss": loss}, step=index)
+            accelerator.log({"training_loss": loss}, step=index - 1)
             pbar.set_description(f"Loss: {loss}", refresh=True)
 
             gpus = GPUtil.getGPUs()
@@ -58,4 +58,4 @@ def start_training(
                 gpu = gpus[gpu_num]
                 if gpu.temperature >= TEMP_LIMIT:
                     faktor = int(gpu.temperature) - TEMP_LIMIT
-                    time.sleep(faktor * 10)
+                    time.sleep(faktor * 5)
