@@ -5,13 +5,13 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 from datasets import Dataset
 
-BATCH_SIZE = 2
-BASE_MODEL = "flozi00/Llama-2-7b-german-assistant-v1"
-PEFT_MODEL = "Llama-2-7b-german-assistant-v2"
+BATCH_SIZE = 1
+BASE_MODEL = "OpenAssistant/llama2-13b-orca-8k-3319"
+PEFT_MODEL = "llama2-13b-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
-LR = 1e-5
+LR = 3e-5
 
-ROPE_FAKTOR = 2
+ROPE_FAKTOR = 1
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
         processor=processor,
         datas=cv_data,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=512 * 4 * ROPE_FAKTOR,
+        max_input_length=4096 * ROPE_FAKTOR,
         text_key="conversations",
     )
 
