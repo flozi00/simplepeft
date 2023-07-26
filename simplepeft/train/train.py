@@ -1,10 +1,10 @@
-from lion_pytorch import Lion
 from accelerate import Accelerator
 import warnings
 from tqdm.auto import tqdm
 import time
 import GPUtil
 from torch.optim.lr_scheduler import ExponentialLR
+from torch.optim.adam import Adam
 
 warnings.simplefilter("ignore")
 
@@ -15,7 +15,6 @@ def start_training(
     model, processor, dloader, PEFT_MODEL, LR: float, model_conf: dict, batch_size: int
 ):
     accelerator = Accelerator(log_with="wandb")
-    device = accelerator.device
     accelerator.init_trackers("huggingface")
 
     if model_conf["is8bit"]:
@@ -23,7 +22,7 @@ def start_training(
 
         optim = PagedAdam(model.parameters(), lr=LR)
     else:
-        optim = Lion(model.parameters(), lr=LR)
+        optim = Adam(model.parameters(), lr=LR)
 
     scheduler = ExponentialLR(optim, gamma=0.95)
     model, optim, dloader, scheduler = accelerator.prepare(

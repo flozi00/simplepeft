@@ -10,3 +10,4 @@ unidecode
 deepspeed
 sentencepiece
 gputil
+auto-gptq
