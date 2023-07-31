@@ -8,7 +8,7 @@ from torch.optim.adam import Adam
 
 warnings.simplefilter("ignore")
 
-TEMP_LIMIT = 70
+TEMP_LIMIT = 68
 
 
 def start_training(
@@ -31,7 +31,6 @@ def start_training(
 
     model.train()
     index = 1
-    losses = []
     for data in (pbar := tqdm(dloader)):
         if index % 100 == 0:
             model.save_pretrained(
@@ -40,31 +39,22 @@ def start_training(
                 state_dict=accelerator.get_state_dict(model),
             )
 
-        optim.zero_grad()
         output = model(return_dict=True, **data)
         loss = output.loss
         accelerator.backward(loss)
 
-        if len(losses) < 2:
-            losses.append(loss)
-        elif len(losses) > 4:
-            losses.pop(0)
-
-        avg_loss = sum(losses) / len(losses)
-
         pbar.set_description(
-            f"Loss: {loss}, Average_loss: {avg_loss}, Step trained: {index-1}",
+            f"Loss: {loss}",
             refresh=True,
         )
 
-        if loss < 2 * avg_loss:
-            losses.append(loss)
-            optim.step()
-            scheduler.step()
-            accelerator.log(
-                {"training_loss": loss, "average_loss": avg_loss}, step=index - 1
-            )
-            index += 1
+        accelerator.log({"training_loss": loss}, step=index - 1)
+
+        optim.step()
+        scheduler.step()
+        optim.zero_grad()
+
+        index += 1
 
         gpus = GPUtil.getGPUs()
         for gpu_num in range(len(gpus)):

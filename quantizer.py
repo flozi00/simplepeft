@@ -3,6 +3,12 @@ from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
 from chat_data import get_chat_dataset
 import fire
 
+TESTS = [
+    "<|prompter|>Können Sie das Rätsel des umweltfreundlichen Einkaufs lösen? Berücksichtigen Sie die Korrelation zwischen dem Preis eines Produkts und dessen Umweltauswirkungen. Aber Vorsicht, nicht alle teuren Artikel sind notwendigerweise umweltverträglich. Achten Sie auf irreführende Marketingtaktiken und Greenwashing in der Industrie. Können Sie die wahren umweltfreundlichen Optionen entschlüsseln, ohne dabei pleite zu gehen? Lass uns deine Denkfähigkeiten auf die Probe stellen. <|endoftext|><|assistant|>",
+    "<|prompter|>Erstellen Sie eine Liste von 5 Arten von Dinosauriern. <|endoftext|><|assistant|>",
+    "<|prompter|>Wer bist denn du ?<|endoftext|><|assistant|>",
+]
+
 
 def convert_model(BITS, model):
     BITS = int(BITS)
@@ -10,9 +16,11 @@ def convert_model(BITS, model):
     pretrained_model_dir = model
     quantized_model_dir = f"{pretrained_model_dir.split('/')[-1]}-{BITS}bit-autogptq"
 
-    cv_data = get_chat_dataset().select(range(100))
+    cv_data = get_chat_dataset().shuffle(seed=42).select(range(50))
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_model_dir, use_fast=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        pretrained_model_dir, use_fast=True, legacy=False
+    )
     tokenizer.push_to_hub(repo_id=quantized_model_dir)
     examples = [tokenizer(data["conversations"]) for data in cv_data]
 
@@ -26,15 +34,39 @@ def convert_model(BITS, model):
     model = AutoGPTQForCausalLM.from_pretrained(
         pretrained_model_dir,
         quantize_config,
-        #max_memory={0: "20GB", "cpu": "64GB"},
+        # max_memory={0: "20GB", "cpu": "64GB"},
         trust_remote_code=True,
     )
+
+    for test in TESTS:
+        print(
+            tokenizer.decode(
+                model.generate(
+                    **tokenizer(test, add_special_tokens=False, return_tensors="pt").to(
+                        model.device
+                    ),
+                    max_new_tokens=32,
+                )[0]
+            ),
+        )
 
     # quantize model, the examples should be list of dict whose keys can only be "input_ids" and "attention_mask"
     model.quantize(examples)
 
     # save quantized model
     model.push_to_hub(repo_id=quantized_model_dir, save_dir=quantized_model_dir)
+
+    for test in TESTS:
+        print(
+            tokenizer.decode(
+                model.generate(
+                    **tokenizer(test, add_special_tokens=False, return_tensors="pt").to(
+                        model.device
+                    ),
+                    max_new_tokens=32,
+                )[0]
+            ),
+        )
 
 
 if __name__ == "__main__":

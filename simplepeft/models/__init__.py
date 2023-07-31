@@ -79,11 +79,14 @@ def get_model(
             )
 
             try:
-                processor = model_conf.get("processor").from_pretrained(peft_name)
+                processor = model_conf.get("processor").from_pretrained(
+                    peft_name, legacy=False
+                )
             except:
                 # load the processor
                 processor = model_conf.get("processor").from_pretrained(
-                    model_name if processor_name is None else processor_name
+                    model_name if processor_name is None else processor_name,
+                    legacy=False,
                 )
 
             # check if the model_type is whisper or mctct and set the config accordingly
@@ -119,13 +122,14 @@ def get_model(
             if bnb_compatible:
                 kwargs["quantization_config"] = BitsAndBytesConfig(
                     load_in_4bit=True,
-                    bnb_4bit_use_double_quant=True,
+                    bnb_4bit_use_double_quant=False,
                     bnb_4bit_compute_dtype=torch.float16,
-                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_quant_type="fp4",
                 )
-                kwargs[
-                    "max_memory"
-                ] = f"{int(torch.cuda.mem_get_info()[0]/1024**3)-6}GB"
+                kwargs["max_memory"] = {
+                    0: f"{int(torch.cuda.mem_get_info()[0]/1024**3)-6}GB",
+                    "cpu": "64GB",
+                }
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(

@@ -6,10 +6,10 @@ from simplepeft.utils import Tasks
 from datasets import Dataset
 
 BATCH_SIZE = 1
-BASE_MODEL = "OpenAssistant/llama2-13b-orca-8k-3319"
-PEFT_MODEL = "llama2-13b-german-assistant-v3"
+BASE_MODEL = "flozi00/Llama-2-13B-german-assistant-v2"
+PEFT_MODEL = "Llama-2-13b-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
-LR = 3e-5
+LR = 1e-5
 
 ROPE_FAKTOR = 1
 
@@ -27,6 +27,14 @@ def main():
     def edit_special_tokens(example):
         example["conversations"] = example["conversations"].replace(
             "<|endoftext|>", processor.eos_token
+        )
+
+        example["conversations"] = example["conversations"].replace(
+            "<|prompter|>", "User: "
+        )
+
+        example["conversations"] = example["conversations"].replace(
+            "<|assistant|>", "Assistant: "
         )
 
         return example
