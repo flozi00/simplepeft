@@ -6,12 +6,15 @@ from simplepeft.utils import Tasks
 from datasets import Dataset
 
 BATCH_SIZE = 1
-BASE_MODEL = "flozi00/Llama-2-13B-german-assistant-v2"
-PEFT_MODEL = "Llama-2-13b-german-assistant-v3"
+BASE_MODEL = "OpenBuddy/openbuddy-llama2-13b-v8.1-fp16"
+PEFT_MODEL = "Llama-2-13b-german-assistant-v4"
 TASK = Tasks.TEXT_GEN
-LR = 1e-5
+LR = 3e-5
 
 ROPE_FAKTOR = 1
+
+ASSISTANT_PREFIX = "### Assistant:"
+USER_PREFIX = "### User:"
 
 
 def main():
@@ -22,30 +25,30 @@ def main():
 
     # model.config.rope_scaling = {"type": "dynamic", "factor": ROPE_FAKTOR}
 
-    cv_data: Dataset = get_chat_dataset()
+    ds: Dataset = get_chat_dataset()
 
     def edit_special_tokens(example):
         example["conversations"] = example["conversations"].replace(
-            "<|endoftext|>", processor.eos_token
+            "<|endoftext|>", "\n\n"
         )
 
         example["conversations"] = example["conversations"].replace(
-            "<|prompter|>", "User: "
+            "<|prompter|>", USER_PREFIX
         )
 
         example["conversations"] = example["conversations"].replace(
-            "<|assistant|>", "Assistant: "
+            "<|assistant|>", ASSISTANT_PREFIX
         )
 
         return example
 
-    cv_data = cv_data.map(edit_special_tokens)
+    ds = ds.map(edit_special_tokens)
 
     # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(
         task=TASK,  # type: ignore
         processor=processor,
-        datas=cv_data,
+        datas=ds,
         BATCH_SIZE=BATCH_SIZE,
         max_input_length=4096 * ROPE_FAKTOR,
         text_key="conversations",
