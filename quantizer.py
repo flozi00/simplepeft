@@ -34,39 +34,19 @@ def convert_model(BITS, model):
     model = AutoGPTQForCausalLM.from_pretrained(
         pretrained_model_dir,
         quantize_config,
-        # max_memory={0: "20GB", "cpu": "64GB"},
+        max_memory={0: "16GB", "cpu": "128GB"},
         trust_remote_code=True,
     )
-
-    for test in TESTS:
-        print(
-            tokenizer.decode(
-                model.generate(
-                    **tokenizer(test, add_special_tokens=False, return_tensors="pt").to(
-                        model.device
-                    ),
-                    max_new_tokens=32,
-                )[0]
-            ),
-        )
 
     # quantize model, the examples should be list of dict whose keys can only be "input_ids" and "attention_mask"
     model.quantize(examples)
 
-    # save quantized model
-    model.push_to_hub(repo_id=quantized_model_dir, save_dir=quantized_model_dir)
+    model.cpu()
 
-    for test in TESTS:
-        print(
-            tokenizer.decode(
-                model.generate(
-                    **tokenizer(test, add_special_tokens=False, return_tensors="pt").to(
-                        model.device
-                    ),
-                    max_new_tokens=32,
-                )[0]
-            ),
-        )
+    # save quantized model
+    model.push_to_hub(
+        repo_id=quantized_model_dir, save_dir=quantized_model_dir, use_safetensors=False
+    )
 
 
 if __name__ == "__main__":
