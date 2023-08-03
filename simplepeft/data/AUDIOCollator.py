@@ -48,7 +48,7 @@ class ASRDataCollator:
         new_text = feature[self.text_key]
 
         rate = int((len(myaudio) / 16000) / self.max_audio_in_seconds)
-        if rate > 1:
+        if rate > 1 and rate < 1.5:
             myaudio = librosa.effects.time_stretch(myaudio, rate=rate)
 
         return myaudio, new_text

@@ -5,18 +5,18 @@ from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
 
-BATCH_SIZE = 8
-BASE_MODEL = "aware-ai/wav2vec2-xls-r-1b-german-cv11"
-PEFT_MODEL = "wav2vec2-xls-r-1b-german-cv13"
+BATCH_SIZE = 32
+BASE_MODEL = "facebook/wav2vec2-xls-r-300m"
+PEFT_MODEL = "wav2vec2-300m-german-cv13"
 TASK = Tasks.ASR
-LR = 1e-5
-CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
+LR = 1e-4
 
 
 # generate the dataset from the common voice dataset saved locally and load it as a dataset object
 # the dataset is filtered to only contain sentences with more than 5 characters and at least 2 upvotes and no downvotes
 # the audio is casted to the Audio feature of the datasets library with a sampling rate of 16000
 def get_dataset() -> datasets.Dataset:
+    CV_DATA_PATH = "./cv-corpus-13.0-2023-03-09/de/"
     df = pd.read_table(filepath_or_buffer=f"{CV_DATA_PATH}validated.tsv")
     df["audio"] = f"{CV_DATA_PATH}clips/" + df["path"].astype(dtype=str)
     df["down_votes"] = df["down_votes"].astype(dtype=int)
@@ -39,8 +39,25 @@ def get_dataset() -> datasets.Dataset:
     return d_sets
 
 
+def hf_ds():
+    ds = datasets.load_dataset(
+        "mozilla-foundation/common_voice_13_0", "de", split="train"
+    )
+
+    ds = ds.filter(
+        lambda example: example["down_votes"] <= 0 and example["up_votes"] >= 2,
+        num_proc=8,
+    )
+
+    ds = ds.cast_column(
+        column="audio", feature=datasets.features.Audio(sampling_rate=16000)
+    )
+
+    return ds
+
+
 def main():
-    cv_data = get_dataset()
+    cv_data = hf_ds()
 
     # get the model, processor and model_conf by configuration
     model, processor, model_conf = get_model(
@@ -69,7 +86,6 @@ def main():
         dloader=dloader,
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
-        model_conf=model_conf,
     )
 
 

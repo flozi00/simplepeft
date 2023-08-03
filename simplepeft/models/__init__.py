@@ -98,10 +98,10 @@ def get_model(
             elif model_type in ["wav2vec2", "mctct"]:
                 conf.update(
                     {
-                        "feat_proj_dropout": 0,
-                        "attention_dropout": 0,
-                        "hidden_dropout": 0,
-                        "final_dropout": 0,
+                        "feat_proj_dropout": 0.01,
+                        "attention_dropout": 0.01,
+                        "hidden_dropout": 0.01,
+                        "final_dropout": 0.01,
                         "mask_time_prob": 0,
                         "mask_time_length": 0,
                         "mask_feature_prob": 0,
@@ -111,11 +111,8 @@ def get_model(
                         "ctc_loss_reduction": "mean",
                         "pad_token_id": processor.tokenizer.pad_token_id,
                         "vocab_size": len(processor.tokenizer),
-                        "activation_dropout": 0,
+                        "activation_dropout": 0.01,
                     }
-                )
-                kwargs["llm_int8_skip_modules"] = model_conf.get(
-                    "modules_to_save", None
                 )
                 kwargs["ignore_mismatched_sizes"] = True
 
@@ -139,11 +136,6 @@ def get_model(
                 torch_dtype=torch.float16,
                 **kwargs,
             )
-
-            try:
-                model = BetterTransformer.transform(model)
-            except Exception as e:
-                print(e)
 
             try:
                 if processor.pad_token is None:
@@ -203,17 +195,21 @@ def get_model(
 
             if push_to_hub:
                 PUSH_NAME = peft_name.split(sep="/")[-1]
-                model = BetterTransformer.reverse(model)
                 model.half()
 
-                model.save_pretrained(PUSH_NAME)
+                model.save_pretrained(PUSH_NAME, safe_serialization=True)
                 processor.save_pretrained(PUSH_NAME)
 
-                model.push_to_hub(PUSH_NAME, safe_serialization=False)
+                model.push_to_hub(PUSH_NAME, safe_serialization=True)
                 processor.push_to_hub(PUSH_NAME)
 
             model_conf["is8bit"] = bnb_compatible
             model_conf["is_peft"] = use_peft
+            if task == Tasks.TEXT_GEN:
+                try:
+                    model = BetterTransformer.transform(model)
+                except Exception as e:
+                    print(e)
             return model, processor, model_conf
 
     # if the model_type is not in the list of supported models, raise an error

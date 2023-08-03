@@ -44,9 +44,7 @@ def convert_model(BITS, model):
     model.cpu()
 
     # save quantized model
-    model.push_to_hub(
-        repo_id=quantized_model_dir, save_dir=quantized_model_dir, use_safetensors=False
-    )
+    model.push_to_hub(repo_id=quantized_model_dir, save_dir=quantized_model_dir)
 
 
 if __name__ == "__main__":
