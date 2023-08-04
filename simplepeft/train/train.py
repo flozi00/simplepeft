@@ -7,8 +7,8 @@ from torch.optim.adam import Adam
 warnings.simplefilter("ignore")
 
 
-def start_training(model, processor, dloader, PEFT_MODEL, LR: float):
-    accelerator = Accelerator(log_with="wandb")
+def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):
+    accelerator = Accelerator(log_with="wandb", gradient_accumulation_steps=1)
     accelerator.init_trackers("huggingface")
 
     try:
@@ -27,6 +27,8 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float):
     index = 1
     for data in (pbar := tqdm(dloader)):
         if index % 100 == 0:
+            if callback is not None:
+                callback()
             model.save_pretrained(
                 PEFT_MODEL,
                 save_function=accelerator.save,
@@ -35,19 +37,20 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float):
             )
             processor.save_pretrained(PEFT_MODEL)
 
-        output = model(return_dict=True, **data)
-        loss = output.loss
-        accelerator.backward(loss)
+        with accelerator.accumulate(model):
+            output = model(return_dict=True, **data)
+            loss = output.loss
+            accelerator.backward(loss)
 
-        pbar.set_description(
-            f"Loss: {loss}",
-            refresh=True,
-        )
+            pbar.set_description(
+                f"Loss: {loss}",
+                refresh=True,
+            )
 
-        accelerator.log({"training_loss": loss}, step=index - 1)
+            accelerator.log({"training_loss": loss}, step=index - 1)
 
-        optim.step()
-        scheduler.step()
-        optim.zero_grad()
+            optim.step()
+            scheduler.step()
+            optim.zero_grad()
 
         index += 1

@@ -1,4 +1,5 @@
 import datasets
+import torch
 from simplepeft.data import get_dataloader
 from simplepeft.models import get_model
 from simplepeft.train.train import start_training
@@ -65,8 +66,35 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=False,
-        processor_name="aware-ai/wav2vec2-xls-r-1b-german-cv11",
+        # processor_name="aware-ai/wav2vec2-xls-r-1b-german-cv11",
     )
+
+    def eval_func_whisper():
+        model.eval()
+        inputs = processor(cv_data[0]["audio"]["array"], return_tensors="pt")
+        input_features = inputs.input_features.to(model.device).half()
+        generated_ids = model.generate(inputs=input_features)
+        transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[
+            0
+        ]
+        print(transcription, cv_data[0]["sentence"])
+        model.train()
+
+    def eval_func_w2v():
+        model.eval()
+        inputs = (
+            processor(
+                cv_data[0]["audio"]["array"], sampling_rate=16000, return_tensors="pt"
+            )
+            .to(model.device)
+            .input_values.half()
+        )
+        with torch.no_grad():
+            logits = model(input_values=inputs).logits
+        predicted_ids = torch.argmax(logits, dim=-1)
+        transcription = processor.batch_decode(predicted_ids)[0]
+        print("pred", transcription, "target", cv_data[0]["sentence"])
+        model.train()
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
     # check the **kwargs in the get_dataloader function in simplepeft/data/main.py for more information
@@ -86,6 +114,7 @@ def main():
         dloader=dloader,
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
+        callback=eval_func_w2v,
     )
 
 

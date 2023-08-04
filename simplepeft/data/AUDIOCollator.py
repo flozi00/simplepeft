@@ -42,17 +42,6 @@ class ASRDataCollator:
     text_key: str = "sentence"
     max_audio_in_seconds: float = 10.0
 
-    def augment(self, feature):
-        myaudio = feature[self.wav_key]["array"]
-
-        new_text = feature[self.text_key]
-
-        rate = int((len(myaudio) / 16000) / self.max_audio_in_seconds)
-        if rate > 1 and rate < 1.5:
-            myaudio = librosa.effects.time_stretch(myaudio, rate=rate)
-
-        return myaudio, new_text
-
     def __call__(
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
     ) -> Dict[str, torch.Tensor]:
@@ -62,7 +51,13 @@ class ASRDataCollator:
         for i in range(len(features)):
             feature = features[i]
 
-            myaudio, mytext = self.augment(feature)
+            myaudio = feature[self.wav_key]["array"]
+            mytext = feature[self.text_key]
+
+            audio_len = int((len(myaudio) / 16000))
+            if audio_len > self.max_audio_in_seconds:
+                print("skipping audio")
+                continue
 
             # Extract the text from the feature and normalize it
             mytext = normalize_text(mytext)

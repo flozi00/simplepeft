@@ -140,9 +140,11 @@ def get_model(
             try:
                 if processor.pad_token is None:
                     processor.pad_token = processor.eos_token
+                    print("Setting pad token to eos token")
             except:
                 if processor.tokenizer.pad_token is None:
                     processor.tokenizer.pad_token = processor.tokenizer.eos_token
+                    print("Setting pad token to eos token")
 
             # check if peft_name is not None, if True, load the peft model
             if peft_name is not None:
@@ -161,8 +163,8 @@ def get_model(
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=64,
-                    lora_alpha=128,
+                    r=32,
+                    lora_alpha=64,
                     target_modules=model_conf.get("target_modules"),
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,
