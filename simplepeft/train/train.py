@@ -11,6 +11,8 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
     accelerator = Accelerator(log_with="wandb", gradient_accumulation_steps=4)
     accelerator.init_trackers("huggingface")
 
+    model.train()
+
     try:
         from bitsandbytes.optim import PagedAdamW32bit
 
@@ -26,10 +28,9 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
     if callback is not None:
         callback()
 
-    model.train()
     index = 1
     for data in (pbar := tqdm(dloader)):
-        if index % 100 == 0:
+        if index % 10 == 0:
             if callback is not None:
                 callback()
             model.save_pretrained(
@@ -40,6 +41,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
             )
             processor.save_pretrained(PEFT_MODEL)
 
+        optim.zero_grad()
         with accelerator.accumulate(model):
             output = model(return_dict=True, **data)
             loss = output.loss
@@ -54,6 +56,5 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
 
             optim.step()
             scheduler.step()
-            optim.zero_grad()
 
         index += 1

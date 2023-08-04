@@ -5,6 +5,7 @@ from simplepeft.models import get_model
 from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 import pandas as pd
+from jiwer import wer
 
 BATCH_SIZE = 32
 BASE_MODEL = "aware-ai/wav2vec2-xls-r-300m-german"
@@ -71,29 +72,43 @@ def main():
 
     def eval_func_whisper():
         model.eval()
-        inputs = processor(cv_data[0]["audio"]["array"], return_tensors="pt")
-        input_features = inputs.input_features.to(model.device).half()
-        generated_ids = model.generate(inputs=input_features)
-        transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[
-            0
-        ]
-        print(transcription, cv_data[0]["sentence"])
+        trans = []
+        vals = []
+        for xyz in range(100):
+            inputs = processor(cv_data[xyz]["audio"]["array"], return_tensors="pt")
+            input_features = inputs.input_features.to(model.device).half()
+            generated_ids = model.generate(inputs=input_features)
+            transcription = processor.batch_decode(
+                generated_ids, skip_special_tokens=True
+            )[0]
+            trans.append(transcription)
+            vals.append(cv_data[xyz]["sentence"])
+
+        print(wer(vals, trans))
         model.train()
 
     def eval_func_w2v():
         model.eval()
-        inputs = (
-            processor(
-                cv_data[0]["audio"]["array"], sampling_rate=16000, return_tensors="pt"
+        trans = []
+        vals = []
+        for xyz in range(100):
+            inputs = (
+                processor(
+                    cv_data[0]["audio"]["array"],
+                    sampling_rate=16000,
+                    return_tensors="pt",
+                )
+                .to(model.device)
+                .input_values.half()
             )
-            .to(model.device)
-            .input_values.half()
-        )
-        with torch.no_grad():
-            logits = model(input_values=inputs).logits
-        predicted_ids = torch.argmax(logits, dim=-1)
-        transcription = processor.batch_decode(predicted_ids)[0]
-        print("pred", transcription, "target", cv_data[0]["sentence"])
+            with torch.no_grad():
+                logits = model(input_values=inputs).logits
+            predicted_ids = torch.argmax(logits, dim=-1)
+            transcription = processor.batch_decode(predicted_ids)[0]
+            trans.append(transcription)
+            vals.append(cv_data[xyz]["sentence"])
+
+        print(wer(vals, trans))
         model.train()
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
