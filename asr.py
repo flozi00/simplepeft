@@ -7,10 +7,10 @@ from simplepeft.utils import Tasks
 import pandas as pd
 
 BATCH_SIZE = 32
-BASE_MODEL = "facebook/wav2vec2-xls-r-300m"
+BASE_MODEL = "aware-ai/wav2vec2-xls-r-300m-german"
 PEFT_MODEL = "wav2vec2-300m-german-cv13"
 TASK = Tasks.ASR
-LR = 1e-4
+LR = 1e-5
 
 
 # generate the dataset from the common voice dataset saved locally and load it as a dataset object

@@ -8,7 +8,7 @@ warnings.simplefilter("ignore")
 
 
 def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):
-    accelerator = Accelerator(log_with="wandb", gradient_accumulation_steps=1)
+    accelerator = Accelerator(log_with="wandb", gradient_accumulation_steps=4)
     accelerator.init_trackers("huggingface")
 
     try:
@@ -22,6 +22,9 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
     model, optim, dloader, scheduler = accelerator.prepare(
         model, optim, dloader, scheduler
     )
+
+    if callback is not None:
+        callback()
 
     model.train()
     index = 1
