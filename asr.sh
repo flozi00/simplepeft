@@ -5,9 +5,9 @@ python run_speech_recognition_ctc.py \
 	--output_dir="./wav2vec2-large-xlsr-53-german-cv13" \
 	--overwrite_output_dir \
 	--num_train_epochs="15" \
-	--per_device_train_batch_size="64" \
-	--gradient_accumulation_steps="2" \
-	--learning_rate="3e-4" \
+	--per_device_train_batch_size="16" \
+	--gradient_accumulation_steps="4" \
+	--learning_rate="1e-4" \
 	--warmup_steps="500" \
 	--evaluation_strategy="steps" \
 	--text_column_name="sentence" \
@@ -22,5 +22,7 @@ python run_speech_recognition_ctc.py \
 	--fp16 \
 	--group_by_length \
 	--push_to_hub \
-	--do_train --do_eval \
-    --preprocessing_num_workers="8"
+	--do_train --do_eval --report_to "wandb" \
+    --preprocessing_num_workers="16" \
+    --dataloader_num_workers="8" \
+    --logging_steps="1" --logging_strategy="steps"
