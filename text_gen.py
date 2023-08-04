@@ -6,9 +6,9 @@ from simplepeft.utils import Tasks
 from datasets import Dataset
 from peft import PeftModelForCausalLM
 
-BATCH_SIZE = 1
-BASE_MODEL = "meta-llama/Llama-2-7b-chat-hf"
-PEFT_MODEL = "Llama-2-7b-german-assistant-v3"
+BATCH_SIZE = 2
+BASE_MODEL = "meta-llama/Llama-2-13b-chat-hf"
+PEFT_MODEL = "Llama-2-13b-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
 
@@ -39,8 +39,6 @@ def main():
 
         print(decoded)
         model.train()
-
-    eval_fun()
 
     # model.config.rope_scaling = {"type": "dynamic", "factor": ROPE_FAKTOR}
 
