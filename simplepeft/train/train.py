@@ -29,32 +29,33 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
         callback()
 
     index = 1
-    for data in (pbar := tqdm(dloader)):
-        if index % 10 == 0:
-            if callback is not None:
-                callback()
-            model.save_pretrained(
-                PEFT_MODEL,
-                save_function=accelerator.save,
-                state_dict=accelerator.get_state_dict(model),
-                safe_serialization=True,
-            )
-            processor.save_pretrained(PEFT_MODEL)
+    while True:
+        for data in (pbar := tqdm(dloader)):
+            if index % 1000 == 0:
+                if callback is not None:
+                    callback()
+                model.save_pretrained(
+                    PEFT_MODEL,
+                    save_function=accelerator.save,
+                    state_dict=accelerator.get_state_dict(model),
+                    safe_serialization=True,
+                )
+                processor.save_pretrained(PEFT_MODEL)
 
-        optim.zero_grad()
-        with accelerator.accumulate(model):
-            output = model(return_dict=True, **data)
-            loss = output.loss
-            accelerator.backward(loss)
+            optim.zero_grad()
+            with accelerator.accumulate(model):
+                output = model(return_dict=True, **data)
+                loss = output.loss
+                accelerator.backward(loss)
 
-            pbar.set_description(
-                f"Loss: {loss}",
-                refresh=True,
-            )
+                pbar.set_description(
+                    f"Loss: {loss}",
+                    refresh=True,
+                )
 
-            accelerator.log({"training_loss": loss}, step=index - 1)
+                accelerator.log({"training_loss": loss}, step=index - 1)
 
-            optim.step()
-            scheduler.step()
+                optim.step()
+                scheduler.step()
 
-        index += 1
+            index += 1

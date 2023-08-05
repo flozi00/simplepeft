@@ -6,7 +6,7 @@ from simplepeft.utils import Tasks
 from datasets import Dataset
 from peft import PeftModelForCausalLM
 
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 BASE_MODEL = "meta-llama/Llama-2-13b-chat-hf"
 PEFT_MODEL = "Llama-2-13b-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
