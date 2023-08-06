@@ -8,15 +8,15 @@ warnings.simplefilter("ignore")
 
 
 def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):
-    accelerator = Accelerator(log_with="wandb", gradient_accumulation_steps=4)
+    accelerator = Accelerator(log_with="wandb", gradient_accumulation_steps=2)
     accelerator.init_trackers("huggingface")
 
     model.train()
 
     try:
-        from bitsandbytes.optim import PagedAdamW32bit
+        from bitsandbytes.optim import PagedAdamW32bit, PagedLion32bit
 
-        optim = PagedAdamW32bit(model.parameters(), lr=LR)
+        optim = PagedLion32bit(model.parameters(), lr=LR)
     except Exception:
         optim = Adam(model.parameters(), lr=LR)
 
@@ -26,14 +26,18 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
     )
 
     if callback is not None:
-        callback()
+        eval_ = callback()
+        if eval_ is not None:
+            accelerator.log({"eval_metric": eval_}, step=0)
 
     index = 1
     while True:
         for data in (pbar := tqdm(dloader)):
             if index % 1000 == 0:
                 if callback is not None:
-                    callback()
+                    eval_ = callback()
+                    if eval_ is not None:
+                        accelerator.log({"eval_metric": eval_}, step=index - 1)
                 model.save_pretrained(
                     PEFT_MODEL,
                     save_function=accelerator.save,

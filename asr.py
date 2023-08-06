@@ -7,11 +7,12 @@ import pandas as pd
 from jiwer import wer
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 
-BATCH_SIZE = 16
-BASE_MODEL = "aware-ai/wav2vec2-xls-r-300m-german"
-PEFT_MODEL = "wav2vec2-300m-german-cv14"
+BATCH_SIZE = 8
+BASE_MODEL = "facebook/wav2vec2-large-xlsr-53"
+BASE_PROCESSOR = "aware-ai/wav2vec2-xls-r-300m-german"
+PEFT_MODEL = "wav2vec2-large-xlsr-german-cv14"
 TASK = Tasks.ASR
-LR = 1e-5
+LR = 3e-5
 
 
 # generate the dataset from the common voice dataset saved locally and load it as a dataset object
@@ -44,39 +45,35 @@ def get_dataset() -> datasets.Dataset:
 def main():
     cv_data = get_dataset()
 
-    processor = Wav2Vec2Processor.from_pretrained(BASE_MODEL)
+    processor = Wav2Vec2Processor.from_pretrained(BASE_PROCESSOR)
     vocab_size = len(processor.tokenizer)
     model = (
-        Wav2Vec2ForCTC.from_pretrained(BASE_MODEL, vocab_size=vocab_size).cuda().half()
+        Wav2Vec2ForCTC.from_pretrained(
+            BASE_MODEL,
+            vocab_size=vocab_size,
+            # target_lang="deu",
+            # ignore_mismatched_sizes=True,
+        )
+        .cuda()
+        .half()
     )
 
-    def eval_func_whisper():
-        model.eval()
-        trans = []
-        vals = []
-        for xyz in range(BATCH_SIZE):
-            inputs = processor(cv_data[xyz]["audio"]["array"], return_tensors="pt")
-            input_features = inputs.input_features.to(model.device).half()
-            generated_ids = model.generate(inputs=input_features)
-            transcription = processor.batch_decode(
-                generated_ids, skip_special_tokens=True
-            )[0]
-            trans.append(transcription)
-            vals.append(cv_data[xyz]["sentence"])
-
-        print(wer(vals, trans))
-        model.train()
+    model.config.ctc_loss_reduction = "mean"
 
     def eval_func_w2v():
         model.eval()
         trans = []
         vals = []
-        for xyz in range(256):
+        for xyz in range(0, BATCH_SIZE * 128, BATCH_SIZE):
+            audios = [
+                cv_data[index]["audio"]["array"]
+                for index in range(xyz, xyz + BATCH_SIZE)
+            ]
+            for index in range(xyz, xyz + BATCH_SIZE):
+                vals.append(cv_data[index]["sentence"])
             inputs = (
                 processor(
-                    cv_data[xyz]["audio"]["array"],
-                    sampling_rate=16000,
-                    return_tensors="pt",
+                    audios, sampling_rate=16000, return_tensors="pt", padding=True
                 )
                 .to(model.device)
                 .input_values.half()
@@ -84,12 +81,12 @@ def main():
             with torch.no_grad():
                 logits = model(input_values=inputs).logits
             predicted_ids = torch.argmax(logits, dim=-1)
-            transcription = processor.batch_decode(predicted_ids)[0]
-            trans.append(transcription)
-            vals.append(cv_data[xyz]["sentence"])
+            transcription = processor.batch_decode(predicted_ids)
+            trans.extend(transcription)
 
-        print(wer(vals, trans) * 100)
         model.train()
+
+        return wer(vals, trans) * 100
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
     # check the **kwargs in the get_dataloader function in simplepeft/data/main.py for more information
