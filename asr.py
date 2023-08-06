@@ -134,7 +134,7 @@ def main():
         task=TASK,  # type: ignore
         processor=processor,
         datas=cv_data,
-        max_audio_in_seconds=16,
+        max_audio_in_seconds=10,
         BATCH_SIZE=BATCH_SIZE,
         batch_size=BATCH_SIZE,
     )

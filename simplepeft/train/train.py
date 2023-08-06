@@ -6,9 +6,13 @@ from torch.optim.adam import Adam
 
 warnings.simplefilter("ignore")
 
+ACCUMULATION_STEPS = 16
+
 
 def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):
-    accelerator = Accelerator(log_with="wandb", gradient_accumulation_steps=2)
+    accelerator = Accelerator(
+        log_with="wandb", gradient_accumulation_steps=ACCUMULATION_STEPS
+    )
     accelerator.init_trackers("huggingface")
 
     model.train()
@@ -56,8 +60,8 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
                     f"Loss: {loss}",
                     refresh=True,
                 )
-
-                accelerator.log({"training_loss": loss}, step=index - 1)
+                if index % ACCUMULATION_STEPS == 0:
+                    accelerator.log({"training_loss": loss}, step=index - 1)
                 if accelerator.sync_gradients:
                     accelerator.clip_grad_value_(model.parameters(), 0.7)
                 optim.step()

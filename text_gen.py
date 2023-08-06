@@ -7,8 +7,8 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 
 BATCH_SIZE = 1
-BASE_MODEL = "meta-llama/Llama-2-13b-chat-hf"
-PEFT_MODEL = "Llama-2-13b-german-assistant-v3"
+BASE_MODEL = "meta-llama/Llama-2-7b-chat-hf"
+PEFT_MODEL = "Llama-2-7b-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
 
@@ -28,7 +28,7 @@ def main():
 
     def eval_fun():
         model.eval()
-        prompt = f"{USER_PREFIX} Wer ist aktuell der deutsche Bundeskanzler ?\n\n{ASSISTANT_PREFIX}"
+        prompt = f"{USER_PREFIX} Wer ist aktuell der deutsche Bundeskanzler ?\n\n\n{ASSISTANT_PREFIX}"
         inputs = processor(prompt, return_tensors="pt")
 
         # Generate
@@ -46,7 +46,7 @@ def main():
 
     def edit_special_tokens(example):
         example["conversations"] = example["conversations"].replace(
-            "<|endoftext|>", "\n\n"
+            "<|endoftext|>", "\n\n\n"
         )
 
         example["conversations"] = example["conversations"].replace(
