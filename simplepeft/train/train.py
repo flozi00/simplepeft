@@ -62,7 +62,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
                 )
                 if index % ACCUMULATION_STEPS == 0:
                     accelerator.log(
-                        {"training_loss": loss}, step=(index / ACCUMULATION_STEPS)
+                        {"training_loss": loss}, step=int(index / ACCUMULATION_STEPS)
                     )
                 if accelerator.sync_gradients:
                     accelerator.clip_grad_value_(model.parameters(), 0.7)

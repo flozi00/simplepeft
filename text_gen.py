@@ -10,7 +10,7 @@ BATCH_SIZE = 2
 BASE_MODEL = "meta-llama/Llama-2-7b-chat-hf"
 PEFT_MODEL = "Llama-2-7b-german-assistant-v3"
 TASK = Tasks.TEXT_GEN
-LR = 1e-5
+LR = 1e-4
 
 ROPE_FAKTOR = 1
 

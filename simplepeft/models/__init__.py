@@ -138,6 +138,12 @@ def get_model(
             )
 
             try:
+                model = BetterTransformer.transform(model)
+                print("converted to Bettertransformer")
+            except Exception as e:
+                print(e)
+
+            try:
                 if processor.pad_token is None:
                     processor.pad_token = processor.eos_token
                     print("Setting pad token to eos token")
@@ -189,6 +195,7 @@ def get_model(
                         except Exception as e:
                             print(e)
                 except Exception as e:
+                    print(e)
                     if use_peft:
                         print("Creating peft model")
                         model = get_peft_model(model=model, peft_config=peft_config)
@@ -207,11 +214,7 @@ def get_model(
 
             model_conf["is8bit"] = bnb_compatible
             model_conf["is_peft"] = use_peft
-            if task == Tasks.TEXT_GEN:
-                try:
-                    model = BetterTransformer.transform(model)
-                except Exception as e:
-                    print(e)
+
             return model, processor, model_conf
 
     # if the model_type is not in the list of supported models, raise an error
