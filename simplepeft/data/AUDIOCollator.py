@@ -1,37 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Union
-import librosa
 from unidecode import unidecode
 import torch
 
 from ..languages import LANGUAGES
 from transformers import AutoProcessor
-
-
-def normalize_text(text: str) -> str:
-    """Normalize the text into unidecode characters only
-    Args: text (str): Text to be normalized
-    Returns:
-        str: Normalized text"""
-    couples = [
-        ("ä", "ae"),
-        ("ö", "oe"),
-        ("ü", "ue"),
-        ("ß", "ss"),
-        ("Ä", "Ae"),
-        ("Ö", "Oe"),
-        ("Ü", "Ue"),
-    ]
-
-    # Replace special characters with their ascii equivalent
-    for couple in couples:
-        text = text.replace(couple[0], f"__{couple[1]}__")
-    text = unidecode(text)
-
-    # Replace the ascii equivalent with the original character after unidecode
-    for couple in couples:
-        text = text.replace(f"__{couple[1]}__", couple[0])
-    return text
 
 
 @dataclass
@@ -60,7 +33,6 @@ class ASRDataCollator:
                 continue
 
             # Extract the text from the feature and normalize it
-            mytext = normalize_text(mytext)
             mylang = feature[self.locale_key]
 
             # Extract the audio features from the audio
@@ -83,7 +55,7 @@ class ASRDataCollator:
                     ft: getattr(
                         extracted,
                         ft,
-                    )[0].half()
+                    )[0]
                 }
             )
 

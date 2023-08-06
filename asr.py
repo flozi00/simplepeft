@@ -6,13 +6,39 @@ from simplepeft.utils import Tasks
 import pandas as pd
 from jiwer import wer
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+from unidecode import unidecode
 
 BATCH_SIZE = 8
 BASE_MODEL = "facebook/wav2vec2-large-xlsr-53"
 BASE_PROCESSOR = "aware-ai/wav2vec2-xls-r-300m-german"
 PEFT_MODEL = "wav2vec2-large-xlsr-german-cv14"
 TASK = Tasks.ASR
-LR = 3e-5
+LR = 3e-4
+
+
+def normalize_text(batch):
+    text = batch["sentence"]
+    couples = [
+        ("ä", "ae"),
+        ("ö", "oe"),
+        ("ü", "ue"),
+        ("Ä", "Ae"),
+        ("Ö", "Oe"),
+        ("Ü", "Ue"),
+    ]
+
+    # Replace special characters with their ascii equivalent
+    for couple in couples:
+        text = text.replace(couple[0], f"__{couple[1]}__")
+    text = text.replace("ß", "ss")
+    text = unidecode(text)
+
+    # Replace the ascii equivalent with the original character after unidecode
+    for couple in couples:
+        text = text.replace(f"__{couple[1]}__", couple[0])
+
+    batch["sentence"] = text
+    return batch
 
 
 # generate the dataset from the common voice dataset saved locally and load it as a dataset object
@@ -43,28 +69,42 @@ def get_dataset() -> datasets.Dataset:
 
 
 def main():
-    cv_data = get_dataset()
+    cv_data = get_dataset().map(normalize_text)
+    all_chars = set(" ".join(cv_data["sentence"]))
 
     processor = Wav2Vec2Processor.from_pretrained(BASE_PROCESSOR)
     vocab_size = len(processor.tokenizer)
-    model = (
-        Wav2Vec2ForCTC.from_pretrained(
-            BASE_MODEL,
-            vocab_size=vocab_size,
-            # target_lang="deu",
-            # ignore_mismatched_sizes=True,
-        )
-        .cuda()
-        .half()
-    )
+    model = Wav2Vec2ForCTC.from_pretrained(
+        BASE_MODEL,
+        vocab_size=vocab_size,
+        # target_lang="deu",
+        # ignore_mismatched_sizes=True,
+    ).cuda()
 
     model.config.ctc_loss_reduction = "mean"
+
+    model.config.update(
+        {
+            "feat_proj_dropout": 0,
+            "attention_dropout": 0,
+            "hidden_dropout": 0,
+            "final_dropout": 0,
+            "mask_time_prob": 0,
+            "mask_time_length": 0,
+            "mask_feature_prob": 0,
+            "mask_feature_length": 0,
+            "layerdrop": 0,
+            "ctc_loss_reduction": "mean",
+            "pad_token_id": processor.tokenizer.pad_token_id,
+            "activation_dropout": 0,
+        }
+    )
 
     def eval_func_w2v():
         model.eval()
         trans = []
         vals = []
-        for xyz in range(0, BATCH_SIZE * 128, BATCH_SIZE):
+        for xyz in range(0, BATCH_SIZE * 16, BATCH_SIZE):
             audios = [
                 cv_data[index]["audio"]["array"]
                 for index in range(xyz, xyz + BATCH_SIZE)
@@ -76,7 +116,7 @@ def main():
                     audios, sampling_rate=16000, return_tensors="pt", padding=True
                 )
                 .to(model.device)
-                .input_values.half()
+                .input_values
             )
             with torch.no_grad():
                 logits = model(input_values=inputs).logits

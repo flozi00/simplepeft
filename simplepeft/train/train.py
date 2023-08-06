@@ -58,7 +58,8 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
                 )
 
                 accelerator.log({"training_loss": loss}, step=index - 1)
-
+                if accelerator.sync_gradients:
+                    accelerator.clip_grad_value_(model.parameters(), 0.7)
                 optim.step()
                 scheduler.step()
 
