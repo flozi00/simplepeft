@@ -8,7 +8,7 @@ from retnet.configuration_retnet import RetNetConfig
 from retnet.modeling_retnet import RetNetModel, RetNetModelWithLMHead
 from transformers import AutoTokenizer
 
-BATCH_SIZE = 4
+BATCH_SIZE = 1
 PEFT_MODEL = "RetNet-small-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
@@ -26,18 +26,21 @@ def main():
 
     processor = AutoTokenizer.from_pretrained("philschmid/instruct-igel-001")
     processor.model_max_length = SEQ_LEN
+    processor.add_special_tokens({"pad_token": "<|endoftext|>"})
     processor.pad_token = processor.eos_token
 
     try:
         model = RetNetModelWithLMHead.from_pretrained(PEFT_MODEL)
     except:
+        hidden_qk = 2048
         model = RetNetModelWithLMHead(
             RetNetConfig(
-                num_layers=12,
-                hidden_size=1024,
-                qk_dim=1280,
-                v_dim=2560,
-                ffn_proj_size=2560,
+                num_layers=24,
+                num_heads=8,
+                hidden_size=hidden_qk,
+                qk_dim=hidden_qk,
+                v_dim=hidden_qk * 2,
+                ffn_proj_size=hidden_qk * 2,
                 forward_impl="parallel",  # parallel , recurrent , chunkwise
                 pad_token_id=processor.pad_token_id,
                 eos_token_id=processor.eos_token_id,
@@ -45,6 +48,9 @@ def main():
             )
         )
     model = model.train().cuda()
+
+    model_size = sum(t.numel() for t in model.parameters())
+    print(f"Model size: {model_size/1000**2:.1f}M parameters")
 
     def eval_fun():
         model.eval()

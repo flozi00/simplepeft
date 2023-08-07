@@ -6,7 +6,7 @@ from torch.optim.adam import Adam
 
 warnings.simplefilter("ignore")
 
-ACCUMULATION_STEPS = 4
+ACCUMULATION_STEPS = 16
 
 
 def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):

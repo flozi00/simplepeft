@@ -143,3 +143,4 @@ offload/
 *.run
 */*.md
 *.json
+*-v*/*.py
