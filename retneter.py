@@ -8,7 +8,7 @@ from retnet.configuration_retnet import RetNetConfig
 from retnet.modeling_retnet import RetNetModel, RetNetModelWithLMHead
 from transformers import AutoTokenizer
 
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 PEFT_MODEL = "RetNet-small-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
 LR = 1e-4
@@ -16,27 +16,35 @@ LR = 1e-4
 ASSISTANT_PREFIX = "### Assistant:"
 USER_PREFIX = "### User:"
 
+SEQ_LEN = 512
+
 
 def main():
-    model = RetNetModelWithLMHead(
-        RetNetConfig(
-            num_layers=12,
-            hidden_size=1024,
-            qk_dim=1280,
-            v_dim=2560,
-            ffn_proj_size=2560,
-            forward_impl="chunkwise",
-        )
-    )
-    model = model.train().cuda()
-
     RetNetConfig.register_for_auto_class()
     RetNetModel.register_for_auto_class("AutoModel")
     RetNetModelWithLMHead.register_for_auto_class("AutoModelForCausalLM")
 
-    processor = AutoTokenizer.from_pretrained("gpt2")
-    processor.model_max_length = 4096
+    processor = AutoTokenizer.from_pretrained("philschmid/instruct-igel-001")
+    processor.model_max_length = SEQ_LEN
     processor.pad_token = processor.eos_token
+
+    try:
+        model = RetNetModelWithLMHead.from_pretrained(PEFT_MODEL)
+    except:
+        model = RetNetModelWithLMHead(
+            RetNetConfig(
+                num_layers=12,
+                hidden_size=1024,
+                qk_dim=1280,
+                v_dim=2560,
+                ffn_proj_size=2560,
+                forward_impl="parallel",  # parallel , recurrent , chunkwise
+                pad_token_id=processor.pad_token_id,
+                eos_token_id=processor.eos_token_id,
+                vocab_size=len(processor),
+            )
+        )
+    model = model.train().cuda()
 
     def eval_fun():
         model.eval()
@@ -80,7 +88,7 @@ def main():
         processor=processor,
         datas=ds,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=4096,
+        max_input_length=SEQ_LEN,
         text_key="conversations",
     )
 
