@@ -9,6 +9,11 @@ warnings.simplefilter("ignore")
 ACCUMULATION_STEPS = 16
 
 
+def get_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group["lr"]
+
+
 def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):
     accelerator = Accelerator(
         log_with="wandb",
@@ -25,7 +30,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
     except Exception:
         optim = Adam(model.parameters(), lr=LR)
 
-    scheduler = ExponentialLR(optim, gamma=0.95)
+    scheduler = ExponentialLR(optim, gamma=0.99)
     model, optim, dloader, scheduler = accelerator.prepare(
         model, optim, dloader, scheduler, device_placement=[True, True, True, True]
     )
@@ -58,16 +63,19 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
                 accelerator.backward(loss)
 
                 pbar.set_description(
-                    f"Loss: {loss}",
+                    f"Loss: {loss} LR: {get_lr(optim.optimizer)}",
                     refresh=True,
                 )
                 if index % ACCUMULATION_STEPS == 0:
                     accelerator.log(
-                        {"training_loss": loss},
+                        values={
+                            "training_loss": loss,
+                            "learning_rate": float(get_lr(optim.optimizer)),
+                        },
                         step=int(index / ACCUMULATION_STEPS),
                     )
                 if accelerator.sync_gradients:
-                    accelerator.clip_grad_value_(model.parameters(), 0.6)
+                    accelerator.clip_grad_value_(model.parameters(), 0.9)
                 optim.step()
                 scheduler.step()
 
