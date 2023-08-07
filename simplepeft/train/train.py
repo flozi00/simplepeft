@@ -6,12 +6,13 @@ from torch.optim.adam import Adam
 
 warnings.simplefilter("ignore")
 
-ACCUMULATION_STEPS = 16
+ACCUMULATION_STEPS = 4
 
 
 def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):
     accelerator = Accelerator(
-        log_with="wandb", gradient_accumulation_steps=ACCUMULATION_STEPS
+        log_with="wandb",
+        gradient_accumulation_steps=ACCUMULATION_STEPS,
     )
     accelerator.init_trackers("huggingface")
 
@@ -26,7 +27,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
 
     scheduler = ExponentialLR(optim, gamma=0.95)
     model, optim, dloader, scheduler = accelerator.prepare(
-        model, optim, dloader, scheduler
+        model, optim, dloader, scheduler, device_placement=[True, True, True, True]
     )
 
     if callback is not None:
@@ -46,7 +47,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
                     PEFT_MODEL,
                     save_function=accelerator.save,
                     state_dict=accelerator.get_state_dict(model),
-                    safe_serialization=True,
+                    safe_serialization=False,
                 )
                 processor.save_pretrained(PEFT_MODEL)
 
@@ -65,7 +66,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
                         {"training_loss": loss}, step=int(index / ACCUMULATION_STEPS)
                     )
                 if accelerator.sync_gradients:
-                    accelerator.clip_grad_value_(model.parameters(), 0.7)
+                    accelerator.clip_grad_value_(model.parameters(), 0.6)
                 optim.step()
                 scheduler.step()
 
