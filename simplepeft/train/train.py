@@ -62,11 +62,11 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
                 loss = output.loss
                 accelerator.backward(loss)
 
-                pbar.set_description(
-                    f"Loss: {loss} LR: {get_lr(optim.optimizer)}",
-                    refresh=True,
-                )
                 if index % ACCUMULATION_STEPS == 0:
+                    pbar.set_description(
+                        f"Loss: {loss} LR: {get_lr(optim.optimizer)}",
+                        refresh=True,
+                    )
                     accelerator.log(
                         values={
                             "training_loss": loss,
