@@ -11,7 +11,7 @@ from transformers import AutoTokenizer
 BATCH_SIZE = 4
 PEFT_MODEL = "RetNet-small-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
-LR = 3e-5
+LR = 3e-4
 
 ASSISTANT_PREFIX = "### Assistant:"
 USER_PREFIX = "### User:"
