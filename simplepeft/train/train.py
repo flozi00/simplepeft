@@ -2,7 +2,7 @@ from accelerate import Accelerator
 import warnings
 from tqdm.auto import tqdm
 from torch.optim.lr_scheduler import ExponentialLR
-from bitsandbytes.optim import PagedAdamW32bit, PagedLion8bit
+from bitsandbytes.optim import PagedLion32bit, PagedLion8bit
 
 warnings.simplefilter("ignore")
 
@@ -23,8 +23,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
 
     model.train()
 
-    optim = PagedLion8bit(model.parameters(), lr=LR)
-
+    optim = PagedLion32bit(model.parameters(), lr=LR)
 
     scheduler = ExponentialLR(optim, gamma=0.99)
     model, optim, dloader, scheduler = accelerator.prepare(

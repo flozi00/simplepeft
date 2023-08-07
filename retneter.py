@@ -8,10 +8,10 @@ from retnet.configuration_retnet import RetNetConfig
 from retnet.modeling_retnet import RetNetModel, RetNetModelWithLMHead
 from transformers import AutoTokenizer
 
-BATCH_SIZE = 4
+BATCH_SIZE = 1
 PEFT_MODEL = "RetNet-small-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
-LR = 3e-4
+LR = 3e-5
 
 ASSISTANT_PREFIX = "### Assistant:"
 USER_PREFIX = "### User:"
@@ -32,7 +32,7 @@ def main():
     try:
         model = RetNetModelWithLMHead.from_pretrained(PEFT_MODEL)
     except:
-        hidden_qk = 1024
+        hidden_qk = 2048
         model = RetNetModelWithLMHead(
             RetNetConfig(
                 num_layers=24,
