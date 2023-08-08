@@ -25,7 +25,7 @@ def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=No
 
     optim = PagedLion32bit(model.parameters(), lr=LR)
 
-    scheduler = ExponentialLR(optim, gamma=0.99)
+    scheduler = ExponentialLR(optim, gamma=0.9995)
     model, optim, dloader, scheduler = accelerator.prepare(
         model, optim, dloader, scheduler, device_placement=[True, True, True, True]
     )
