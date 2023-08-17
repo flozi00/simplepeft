@@ -8,9 +8,9 @@ import simplepeft.train.train
 
 simplepeft.train.train.ACCUMULATION_STEPS = 16
 
-BATCH_SIZE = 1
-BASE_MODEL = "meta-llama/Llama-2-70b-chat-hf"
-PEFT_MODEL = "Llama-2-70b-german-assistant-v1"
+BATCH_SIZE = 4
+BASE_MODEL = "OpenBuddy/openbuddy-openllama-3b-v10-bf16"
+PEFT_MODEL = "openllama-3b-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 

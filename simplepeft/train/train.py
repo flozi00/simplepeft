@@ -20,7 +20,7 @@ def start_training(
     accelerator = Accelerator(
         log_with="wandb",
         gradient_accumulation_steps=ACCUMULATION_STEPS,
-        mixed_precision="fp16" if kbit is False else "fp32",
+        mixed_precision="fp16" if kbit is False else "no",
     )
     accelerator.init_trackers("huggingface")
 
