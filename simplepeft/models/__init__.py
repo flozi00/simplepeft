@@ -205,14 +205,14 @@ def get_model(
             if push_to_hub:
                 PUSH_NAME = peft_name.split(sep="/")[-1]
                 model.half()
-
+                model = BetterTransformer.reverse(model)
                 model.save_pretrained(PUSH_NAME, safe_serialization=True)
                 processor.save_pretrained(PUSH_NAME)
 
                 model.push_to_hub(PUSH_NAME, safe_serialization=True)
                 processor.push_to_hub(PUSH_NAME)
 
-            model_conf["is8bit"] = bnb_compatible
+            model_conf["kbit"] = bnb_compatible
             model_conf["is_peft"] = use_peft
 
             return model, processor, model_conf

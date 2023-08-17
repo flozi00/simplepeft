@@ -7,8 +7,11 @@ from datasets import Dataset
 from retnet.configuration_retnet import RetNetConfig
 from retnet.modeling_retnet import RetNetModel, RetNetModelWithLMHead
 from transformers import AutoTokenizer
+import simplepeft.train.train
 
-BATCH_SIZE = 4
+simplepeft.train.train.ACCUMULATION_STEPS = 4
+
+BATCH_SIZE = 1
 PEFT_MODEL = "RetNet-small-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
 LR = 3e-5
@@ -16,7 +19,7 @@ LR = 3e-5
 ASSISTANT_PREFIX = "### Assistant:"
 USER_PREFIX = "### User:"
 
-SEQ_LEN = 512
+SEQ_LEN = 1024
 
 
 def main():
@@ -24,9 +27,8 @@ def main():
     RetNetModel.register_for_auto_class("AutoModel")
     RetNetModelWithLMHead.register_for_auto_class("AutoModelForCausalLM")
 
-    processor = AutoTokenizer.from_pretrained("philschmid/instruct-igel-001")
+    processor = AutoTokenizer.from_pretrained("OpenAssistant/falcon-7b-sft-mix-2000")
     processor.model_max_length = SEQ_LEN
-    processor.add_special_tokens({"pad_token": "<|endoftext|>"})
     processor.pad_token = processor.eos_token
 
     try:
@@ -35,22 +37,22 @@ def main():
         hidden_qk = 1024
         model = RetNetModelWithLMHead(
             RetNetConfig(
-                num_layers=24,
+                num_layers=32,
                 num_heads=8,
                 hidden_size=hidden_qk,
                 qk_dim=hidden_qk,
                 v_dim=hidden_qk * 2,
                 ffn_proj_size=hidden_qk * 2,
-                forward_impl="parallel",  # parallel , recurrent , chunkwise
+                forward_impl="chunkwise",  # parallel , recurrent , chunkwise
                 pad_token_id=processor.pad_token_id,
                 eos_token_id=processor.eos_token_id,
                 vocab_size=len(processor),
             )
         )
-    model = model.train().cuda()
 
     model_size = sum(t.numel() for t in model.parameters())
     print(f"Model size: {model_size/1000**2:.1f}M parameters")
+    model = model.train().cuda()
 
     def eval_fun():
         model.eval()
@@ -60,11 +62,11 @@ def main():
         # Generate
         with torch.inference_mode():
             generate_ids = model.generate(
-                input_ids=inputs, max_new_tokens=128, parallel_compute_prompt=False
+                input_ids=inputs, max_new_tokens=32, parallel_compute_prompt=False
             )
         decoded = processor.batch_decode(
             generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )[0]
+        )[0].replace("\n", "")
 
         print(decoded)
         model.train()
@@ -73,7 +75,7 @@ def main():
 
     def edit_special_tokens(example):
         example["conversations"] = example["conversations"].replace(
-            "<|endoftext|>", "\n\n\n"
+            "<|endoftext|>", processor.eos_token
         )
 
         example["conversations"] = example["conversations"].replace(
@@ -106,6 +108,7 @@ def main():
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         callback=eval_fun,
+        kbit=False,
     )
 
 

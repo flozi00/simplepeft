@@ -1,7 +1,7 @@
 import datasets
 import torch
 from simplepeft.data import get_dataloader
-from simplepeft.train.train import start_training
+import simplepeft.train.train
 from simplepeft.utils import Tasks
 import pandas as pd
 from jiwer import wer
@@ -13,7 +13,9 @@ BASE_MODEL = "facebook/wav2vec2-large-xlsr-53"
 BASE_PROCESSOR = "aware-ai/wav2vec2-xls-r-300m-german"
 PEFT_MODEL = "wav2vec2-large-xlsr-german-cv14"
 TASK = Tasks.ASR
-LR = 3e-4
+LR = 1e-4
+
+simplepeft.train.train.ACCUMULATION_STEPS = 1
 
 
 def normalize_text(batch):
@@ -140,7 +142,7 @@ def main():
     )
 
     # start the training
-    start_training(
+    simplepeft.train.train.start_training(
         model=model,
         processor=processor,
         dloader=dloader,

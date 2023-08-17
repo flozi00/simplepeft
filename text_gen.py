@@ -1,34 +1,39 @@
 from chat_data import get_chat_dataset
 from simplepeft.data import get_dataloader
 from simplepeft.models import get_model
-from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
 from datasets import Dataset
 from peft import PeftModelForCausalLM
+import simplepeft.train.train
 
-BATCH_SIZE = 2
-BASE_MODEL = "meta-llama/Llama-2-7b-chat-hf"
-PEFT_MODEL = "Llama-2-7b-german-assistant-v3"
+simplepeft.train.train.ACCUMULATION_STEPS = 16
+
+BATCH_SIZE = 1
+BASE_MODEL = "meta-llama/Llama-2-70b-chat-hf"
+PEFT_MODEL = "Llama-2-70b-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
-LR = 1e-4
+LR = 1e-5
 
 ROPE_FAKTOR = 1
 
-ASSISTANT_PREFIX = "### Assistant:"
-USER_PREFIX = "### User:"
+ASSISTANT_PREFIX = " ### Assistant: "
+USER_PREFIX = " ### User: "
 
 
 def main():
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
-        task=TASK, model_name=BASE_MODEL, peft_name=PEFT_MODEL, use_peft=True  # type: ignore
+        task=TASK,
+        model_name=BASE_MODEL,
+        peft_name=PEFT_MODEL,
+        use_peft=True,  # type: ignore
     )
 
     model: PeftModelForCausalLM = model
 
     def eval_fun():
         model.eval()
-        prompt = f"{USER_PREFIX} Wer ist aktuell der deutsche Bundeskanzler ?\n\n\n{ASSISTANT_PREFIX}"
+        prompt = f"{USER_PREFIX} Wer ist aktuell der deutsche Bundeskanzler ?{processor.eos_token}{ASSISTANT_PREFIX}"
         inputs = processor(prompt, return_tensors="pt")
 
         # Generate
@@ -46,7 +51,7 @@ def main():
 
     def edit_special_tokens(example):
         example["conversations"] = example["conversations"].replace(
-            "<|endoftext|>", "\n\n\n"
+            "<|endoftext|>", processor.eos_token
         )
 
         example["conversations"] = example["conversations"].replace(
@@ -72,13 +77,14 @@ def main():
     )
 
     # start training
-    start_training(
+    simplepeft.train.train.start_training(
         model=model,
         processor=processor,
         dloader=dloader,
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         callback=eval_fun,
+        kbit=model_conf.get("kbit", True),
     )
 
 

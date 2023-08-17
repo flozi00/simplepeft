@@ -22,12 +22,13 @@ def convert_model(BITS, model):
         pretrained_model_dir, use_fast=True, legacy=False
     )
     tokenizer.push_to_hub(repo_id=quantized_model_dir)
+    tokenizer.save_pretrained(quantized_model_dir)
     examples = [tokenizer(data["conversations"]) for data in cv_data]
 
     quantize_config = BaseQuantizeConfig(
         bits=BITS,  # quantize model to 4-bit
         group_size=128,  # it is recommended to set the value to 128
-        desc_act=False,  # set to False can significantly speed up inference but the perplexity may slightly bad
+        desc_act=True,  # set to False can significantly speed up inference but the perplexity may slightly bad
     )
 
     # load un-quantized model, by default, the model will always be loaded into CPU memory

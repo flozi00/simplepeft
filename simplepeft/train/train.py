@@ -14,10 +14,13 @@ def get_lr(optimizer):
         return param_group["lr"]
 
 
-def start_training(model, processor, dloader, PEFT_MODEL, LR: float, callback=None):
+def start_training(
+    model, processor, dloader, PEFT_MODEL, LR: float, callback=None, kbit=True
+):
     accelerator = Accelerator(
         log_with="wandb",
         gradient_accumulation_steps=ACCUMULATION_STEPS,
+        mixed_precision="fp16" if kbit is False else "fp32",
     )
     accelerator.init_trackers("huggingface")
 
