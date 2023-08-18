@@ -28,6 +28,7 @@ def get_model(
     use_peft=True,
     push_to_hub=False,
     processor_name: str = None,
+    use_py_flash=True,
 ):
     """Get the ready to use pef model, processor and model config
     Args: task (str): Task for the model
@@ -137,11 +138,12 @@ def get_model(
                 **kwargs,
             )
 
-            try:
-                model = BetterTransformer.transform(model)
-                print("converted to Bettertransformer")
-            except Exception as e:
-                print(e)
+            if use_py_flash is True:
+                try:
+                    model = BetterTransformer.transform(model)
+                    print("converted to Bettertransformer")
+                except Exception as e:
+                    print(e)
 
             try:
                 if processor.pad_token is None:

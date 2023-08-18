@@ -6,15 +6,16 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 import simplepeft.train.train
 
-simplepeft.train.train.ACCUMULATION_STEPS = 16
+simplepeft.train.train.ACCUMULATION_STEPS = 4
 
-BATCH_SIZE = 4
-BASE_MODEL = "OpenBuddy/openbuddy-openllama-3b-v10-bf16"
-PEFT_MODEL = "openllama-3b-german-assistant-v1"
+BATCH_SIZE = 1
+BASE_MODEL = "OpenBuddy/openbuddy-llama2-13b-v8.1-fp16"
+PEFT_MODEL = "Llama-2-13b-german-assistant-v6"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
 ROPE_FAKTOR = 1
+SEQ_LENGTH = 4096
 
 ASSISTANT_PREFIX = " ### Assistant: "
 USER_PREFIX = " ### User: "
@@ -27,6 +28,7 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=True,  # type: ignore
+        use_py_flash=False,
     )
 
     model: PeftModelForCausalLM = model
@@ -72,7 +74,7 @@ def main():
         processor=processor,
         datas=ds,
         BATCH_SIZE=BATCH_SIZE,
-        max_input_length=4096 * ROPE_FAKTOR,
+        max_input_length=SEQ_LENGTH,
         text_key="conversations",
     )
 

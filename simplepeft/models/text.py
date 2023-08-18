@@ -6,6 +6,8 @@ from transformers import (
 )
 from peft import TaskType
 
+from simplepeft.models.custom.flashllama import LlamaForCausalLM
+
 TEXT_TEXT_MODELS = {
     "t5": {
         "class": AutoModelForSeq2SeqLM,
@@ -85,7 +87,7 @@ TEXT_GEN_MODELS = {
         "task_type": TaskType.CAUSAL_LM,
     },
     "llama": {
-        "class": AutoModelForCausalLM,
+        "class": LlamaForCausalLM,
         "processor": LlamaTokenizer,
         "8-bit": True,
         "target_modules": [
