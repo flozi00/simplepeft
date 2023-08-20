@@ -14,7 +14,6 @@ PEFT_MODEL = "Llama-2-13b-german-assistant-v6"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
-ROPE_FAKTOR = 1
 SEQ_LENGTH = 4096
 
 ASSISTANT_PREFIX = " ### Assistant: "
@@ -22,13 +21,32 @@ USER_PREFIX = " ### User: "
 
 
 def main():
+    ds: Dataset = get_chat_dataset().filter(lambda x: x["mode"] == "fine-tune")
+
+    def combine_strings(strings):
+        result = []
+        current_string = strings[0]
+        for string in strings[1:]:
+            if len(current_string + string) <= SEQ_LENGTH * 3:
+                current_string += string
+            else:
+                result.append(current_string)
+                current_string = string
+        result.append(current_string)
+        return result
+
+    new_conversations = combine_strings(ds["conversations"])
+    print(len(ds["conversations"]), "-->", len(new_conversations))
+
+    ds = Dataset.from_dict({"conversations": new_conversations})
+
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=True,  # type: ignore
-        use_py_flash=False,
+        use_py_flash=True,
     )
 
     model: PeftModelForCausalLM = model
@@ -46,10 +64,6 @@ def main():
 
         print(decoded)
         model.train()
-
-    # model.config.rope_scaling = {"type": "dynamic", "factor": ROPE_FAKTOR}
-
-    ds: Dataset = get_chat_dataset()
 
     def edit_special_tokens(example):
         example["conversations"] = example["conversations"].replace(
