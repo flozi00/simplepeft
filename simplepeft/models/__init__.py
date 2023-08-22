@@ -30,6 +30,7 @@ def get_model(
     processor_name: str = None,
     use_py_flash=True,
     use_bnb=True,
+    lora_depth=128,
 ):
     """Get the ready to use pef model, processor and model config
     Args: task (str): Task for the model
@@ -126,10 +127,11 @@ def get_model(
                     bnb_4bit_compute_dtype=torch.float16,
                     bnb_4bit_quant_type="fp4",
                 )
-                kwargs["max_memory"] = {
-                    0: f"{int(torch.cuda.mem_get_info()[0]/1024**3)-6}GB",
-                    "cpu": "64GB",
-                }
+            kwargs["max_memory"] = {
+                0: f"{int(torch.cuda.mem_get_info()[0]/1024**3)-12}GB",
+                "cpu": "64GB",
+            }
+            kwargs["device_map"] = "auto"
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
@@ -173,8 +175,8 @@ def get_model(
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=64,
-                    lora_alpha=64,
+                    r=lora_depth,
+                    lora_alpha=lora_depth,
                     lora_dropout=0.01,
                     target_modules=model_conf.get("target_modules"),
                     task_type=model_conf.get("task_type", None),

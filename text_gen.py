@@ -6,9 +6,9 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 import simplepeft.train.train
 
-simplepeft.train.train.ACCUMULATION_STEPS = 16
+simplepeft.train.train.ACCUMULATION_STEPS = 4
 
-BATCH_SIZE = 4
+BATCH_SIZE = 1
 BASE_MODEL = "flozi00/Llama-2-7b-german-assistant-v3"
 PEFT_MODEL = "Llama-2-7b-german-assistant-v4"
 TASK = Tasks.TEXT_GEN
@@ -21,7 +21,8 @@ USER_PREFIX = " ### User: "
 
 
 def main():
-    ds: Dataset = get_chat_dataset().filter(lambda x: x["mode"] == "fine-tune")
+    ds: Dataset = get_chat_dataset()
+    # ds = ds.filter(lambda x: x["mode"] == "fine-tune")
 
     def combine_strings(strings):
         result = []
@@ -47,6 +48,8 @@ def main():
         peft_name=PEFT_MODEL,
         use_peft=True,  # type: ignore
         use_py_flash=True,
+        use_bnb=True,
+        lora_depth=512,
     )
 
     model: PeftModelForCausalLM = model
