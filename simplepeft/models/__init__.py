@@ -29,6 +29,7 @@ def get_model(
     push_to_hub=False,
     processor_name: str = None,
     use_py_flash=True,
+    use_bnb=True,
 ):
     """Get the ready to use pef model, processor and model config
     Args: task (str): Task for the model
@@ -77,6 +78,7 @@ def get_model(
                 and bnb_available is True
                 and use_peft is True
                 and push_to_hub is False
+                and use_bnb is True
             )
 
             try:
@@ -171,8 +173,9 @@ def get_model(
 
                 # create the lora config
                 peft_config = LoraConfig(
-                    r=32,
+                    r=64,
                     lora_alpha=64,
+                    lora_dropout=0.01,
                     target_modules=model_conf.get("target_modules"),
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,
@@ -187,6 +190,7 @@ def get_model(
                         is_trainable=True,
                     )
                     print("Loaded peft model")
+                    model.print_trainable_parameters()
                     if use_peft is False:
                         try:
                             model = model.merge_and_unload()
@@ -201,6 +205,7 @@ def get_model(
                     if use_peft:
                         print("Creating peft model")
                         model = get_peft_model(model=model, peft_config=peft_config)
+                        model.print_trainable_parameters()
             else:
                 peft_name = model_name
 

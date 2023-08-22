@@ -6,11 +6,11 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 import simplepeft.train.train
 
-simplepeft.train.train.ACCUMULATION_STEPS = 4
+simplepeft.train.train.ACCUMULATION_STEPS = 16
 
-BATCH_SIZE = 1
-BASE_MODEL = "OpenBuddy/openbuddy-llama2-13b-v8.1-fp16"
-PEFT_MODEL = "Llama-2-13b-german-assistant-v6"
+BATCH_SIZE = 4
+BASE_MODEL = "flozi00/Llama-2-7b-german-assistant-v3"
+PEFT_MODEL = "Llama-2-7b-german-assistant-v4"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
@@ -99,7 +99,7 @@ def main():
         dloader=dloader,
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
-        callback=eval_fun,
+        # callback=eval_fun,
         kbit=model_conf.get("kbit", True),
     )
 

@@ -96,6 +96,7 @@ TEXT_GEN_MODELS = {
             "q_proj",
             "k_proj",
             "o_proj",
+            "embed_tokens",
         ],
         "task_type": TaskType.CAUSAL_LM,
     },
