@@ -10,7 +10,7 @@ simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 BATCH_SIZE = 1
 BASE_MODEL = "meta-llama/Llama-2-13b-hf"
-PEFT_MODEL = "heise-13b"
+PEFT_MODEL = "Llama-2-13b-relora"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
