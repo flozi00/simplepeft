@@ -9,12 +9,12 @@ import simplepeft.train.train
 simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 BATCH_SIZE = 1
-BASE_MODEL = "flozi00/Llama-2-7b-german-assistant-v3"
-PEFT_MODEL = "Llama-2-7b-german-assistant-v4"
+BASE_MODEL = "meta-llama/Llama-2-13b-hf"
+PEFT_MODEL = "heise-13b"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
-SEQ_LENGTH = 4096
+SEQ_LENGTH = 2048
 
 ASSISTANT_PREFIX = " ### Assistant: "
 USER_PREFIX = " ### User: "
@@ -49,7 +49,7 @@ def main():
         use_peft=True,  # type: ignore
         use_py_flash=True,
         use_bnb=True,
-        lora_depth=512,
+        lora_depth=64,
     )
 
     model: PeftModelForCausalLM = model
