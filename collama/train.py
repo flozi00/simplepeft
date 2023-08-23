@@ -257,10 +257,12 @@ def main():
 
     booster = Booster(plugin=plugin)
 
+    config = MODEL_CONFIGS[args.config]
+
     # ==============================
     # Initialize Tokenizer, Dataset and Dataloader
     # ==============================
-    tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-70b-chat-hf")
+    tokenizer = LlamaTokenizer.from_pretrained(config)
     # follows fast chat: https://github.com/lm-sys/FastChat/blob/main/fastchat/train/train.py#L257
     tokenizer.pad_token = tokenizer.unk_token
 
@@ -282,7 +284,6 @@ def main():
     # ==============================
     # Initialize Model, Optimizer and LR Scheduler
     # ==============================
-    config = MODEL_CONFIGS[args.config]
     init_ctx = (
         LazyInitContext(default_device=get_current_device())
         if isinstance(plugin, GeminiPlugin)
