@@ -173,12 +173,24 @@ def get_model(
                             model, use_gradient_checkpointing=False
                         )
 
+                def find_all_linear_names(model):
+                    lora_module_names = set()
+                    for name, module in model.named_modules():
+                        if isinstance(module, bnb.nn.Linear4bit) or isinstance(module, bnb.nn.Linear8bitLt) or isinstance(module, torch.nn.Linear):
+                            names = name.split('.')
+                            lora_module_names.add(names[0] if len(names) == 1 else names[-1])
+
+
+                    if 'lm_head' in lora_module_names: # needed for 16-bit
+                        lora_module_names.remove('lm_head')
+                    return list(lora_module_names)
+
                 # create the lora config
                 peft_config = LoraConfig(
                     r=lora_depth,
                     lora_alpha=lora_depth,
                     lora_dropout=0.01,
-                    target_modules=model_conf.get("target_modules"),
+                    target_modules=find_all_linear_names(model),
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,
                     modules_to_save=model_conf.get("modules_to_save", None),
