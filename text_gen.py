@@ -6,9 +6,9 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 import simplepeft.train.train
 
-simplepeft.train.train.ACCUMULATION_STEPS = 4
+simplepeft.train.train.ACCUMULATION_STEPS = 64
 
-BATCH_SIZE = 1
+BATCH_SIZE = 2
 BASE_MODEL = "OpenAssistant/codellama-13b-oasst-sft-v10"
 PEFT_MODEL = "codellama-13b-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
@@ -16,9 +16,9 @@ LR = 1e-5
 
 SEQ_LENGTH = 4096
 
-ASSISTANT_PREFIX = "<|im_start|>assistant\n"
-USER_PREFIX = "<|im_start|>user\n"
-END_SUFFIX = "<|im_end|>"
+ASSISTANT_PREFIX = " ### Assistant:"
+USER_PREFIX = " ### User:"
+END_SUFFIX = "</s>"
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
         use_peft=True,  # type: ignore
         use_py_flash=True,
         use_bnb=True,
-        lora_depth=64,
+        lora_depth=128,
     )
 
     model: PeftModelForCausalLM = model
@@ -41,6 +41,7 @@ def main():
         model.eval()
         prompt = f"{USER_PREFIX} Wer ist aktuell der deutsche Bundeskanzler ?{processor.eos_token}{ASSISTANT_PREFIX}"
         inputs = processor(prompt, return_tensors="pt")
+        inputs = {k: v.to(model.device) for k, v in inputs.items()}
 
         # Generate
         generate_ids = model.generate(**inputs, max_new_tokens=128)
@@ -85,8 +86,9 @@ def main():
         dloader=dloader,
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
-        # callback=eval_fun,
+        callback=eval_fun,
         kbit=model_conf.get("kbit", True),
+        peft_conf=model_conf.get("peft", None),
     )
 
 

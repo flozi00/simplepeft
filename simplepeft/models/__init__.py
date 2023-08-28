@@ -127,11 +127,6 @@ def get_model(
                     bnb_4bit_compute_dtype=torch.float16,
                     bnb_4bit_quant_type="fp4",
                 )
-            kwargs["max_memory"] = {
-                0: f"{int(torch.cuda.mem_get_info()[0]/1024**3)-12}GB",
-                "cpu": "64GB",
-            }
-            kwargs["device_map"] = "auto"
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(
@@ -176,13 +171,18 @@ def get_model(
                 def find_all_linear_names(model):
                     lora_module_names = set()
                     for name, module in model.named_modules():
-                        if isinstance(module, bnb.nn.Linear4bit) or isinstance(module, bnb.nn.Linear8bitLt) or isinstance(module, torch.nn.Linear):
-                            names = name.split('.')
-                            lora_module_names.add(names[0] if len(names) == 1 else names[-1])
+                        if (
+                            isinstance(module, bnb.nn.Linear4bit)
+                            or isinstance(module, bnb.nn.Linear8bitLt)
+                            or isinstance(module, torch.nn.Linear)
+                        ):
+                            names = name.split(".")
+                            lora_module_names.add(
+                                names[0] if len(names) == 1 else names[-1]
+                            )
 
-
-                    if 'lm_head' in lora_module_names: # needed for 16-bit
-                        lora_module_names.remove('lm_head')
+                    if "lm_head" in lora_module_names:  # needed for 16-bit
+                        lora_module_names.remove("lm_head")
                     return list(lora_module_names)
 
                 # create the lora config
@@ -235,6 +235,7 @@ def get_model(
 
             model_conf["kbit"] = bnb_compatible
             model_conf["is_peft"] = use_peft
+            model_conf["peft"] = peft_config
 
             return model, processor, model_conf
 

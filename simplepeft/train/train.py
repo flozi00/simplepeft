@@ -1,9 +1,8 @@
 from accelerate import Accelerator
 import warnings
-import torch
 from tqdm.auto import tqdm
 from torch.optim.lr_scheduler import ExponentialLR
-from bitsandbytes.optim import PagedLion32bit, PagedLion8bit
+from bitsandbytes.optim import PagedLion32bit
 
 warnings.simplefilter("ignore")
 
@@ -16,7 +15,14 @@ def get_lr(optimizer):
 
 
 def start_training(
-    model, processor, dloader, PEFT_MODEL, LR: float, callback=None, kbit=True
+    model,
+    processor,
+    dloader,
+    PEFT_MODEL,
+    LR: float,
+    callback=None,
+    kbit=True,
+    peft_conf=None,
 ):
     accelerator = Accelerator(
         log_with="wandb",
@@ -57,9 +63,7 @@ def start_training(
 
             optim.zero_grad()
             with accelerator.accumulate(model), accelerator.autocast():
-                # key_list = list(data.keys())
-                # for key in key_list:
-                #    data[key] = data[key].to(torch.bfloat16)
+                data = {k: v.to(model.device) for k, v in data.items()}
                 output = model(return_dict=True, **data)
                 loss = output.loss
                 accelerator.backward(loss)
