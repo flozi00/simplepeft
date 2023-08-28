@@ -1,5 +1,5 @@
 transformers
-https://github.com/huggingface/peft/archive/refs/heads/main.zip
+peft
 datasets
 fire
 librosa
@@ -10,4 +10,4 @@ unidecode
 deepspeed
 sentencepiece
 gputil
-auto-gptq
+auto-gptq --extra-index-url https://huggingface.github.io/autogptq-index/whl/cu118/

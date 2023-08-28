@@ -1,5 +1,4 @@
-from transformers import AutoTokenizer
-from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, GPTQConfig
 from chat_data import get_chat_dataset
 import fire
 
@@ -16,36 +15,31 @@ def convert_model(BITS, model):
     pretrained_model_dir = model
     quantized_model_dir = f"{pretrained_model_dir.split('/')[-1]}-{BITS}bit-autogptq"
 
-    cv_data = get_chat_dataset().shuffle(seed=42).select(range(50))
+    cv_data = get_chat_dataset().shuffle(seed=42).select(range(50))["conversations"]
 
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_dir, use_fast=True, legacy=False
     )
     tokenizer.push_to_hub(repo_id=quantized_model_dir)
     tokenizer.save_pretrained(quantized_model_dir)
-    examples = [tokenizer(data["conversations"]) for data in cv_data]
 
-    quantize_config = BaseQuantizeConfig(
-        bits=BITS,  # quantize model to 4-bit
-        group_size=128,  # it is recommended to set the value to 128
-        desc_act=True,  # set to False can significantly speed up inference but the perplexity may slightly bad
+    quantization = GPTQConfig(
+        bits=BITS, dataset=cv_data, tokenizer=tokenizer, batch_size=1
     )
 
-    # load un-quantized model, by default, the model will always be loaded into CPU memory
-    model = AutoGPTQForCausalLM.from_pretrained(
-        pretrained_model_dir,
-        quantize_config,
-        max_memory={0: "16GB", "cpu": "128GB"},
-        trust_remote_code=True,
+    model = AutoModelForCausalLM.from_pretrained(
+        model,
+        device_map="auto",
+        quantization_config=quantization,
+        max_memory={0: "18GB", "cpu": "128GB"},
     )
-
-    # quantize model, the examples should be list of dict whose keys can only be "input_ids" and "attention_mask"
-    model.quantize(examples)
-
-    model.cpu()
 
     # save quantized model
-    model.push_to_hub(repo_id=quantized_model_dir, save_dir=quantized_model_dir)
+    model.push_to_hub(
+        repo_id=quantized_model_dir,
+        save_dir=quantized_model_dir,
+        safe_serialization=True,
+    )
 
 
 if __name__ == "__main__":

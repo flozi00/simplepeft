@@ -9,37 +9,20 @@ import simplepeft.train.train
 simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 BATCH_SIZE = 1
-BASE_MODEL = "meta-llama/Llama-2-13b-hf"
-PEFT_MODEL = "Llama-2-13b-relora"
+BASE_MODEL = "OpenAssistant/codellama-13b-oasst-sft-v10"
+PEFT_MODEL = "codellama-13b-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
-SEQ_LENGTH = 2048
+SEQ_LENGTH = 4096
 
-ASSISTANT_PREFIX = " ### Assistant: "
-USER_PREFIX = " ### User: "
+ASSISTANT_PREFIX = "<|im_start|>assistant\n"
+USER_PREFIX = "<|im_start|>user\n"
+END_SUFFIX = "<|im_end|>"
 
 
 def main():
     ds: Dataset = get_chat_dataset()
-    # ds = ds.filter(lambda x: x["mode"] == "fine-tune")
-
-    def combine_strings(strings):
-        result = []
-        current_string = strings[0]
-        for string in strings[1:]:
-            if len(current_string + string) <= SEQ_LENGTH * 3:
-                current_string += string
-            else:
-                result.append(current_string)
-                current_string = string
-        result.append(current_string)
-        return result
-
-    new_conversations = combine_strings(ds["conversations"])
-    print(len(ds["conversations"]), "-->", len(new_conversations))
-
-    ds = Dataset.from_dict({"conversations": new_conversations})
 
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
@@ -70,7 +53,7 @@ def main():
 
     def edit_special_tokens(example):
         example["conversations"] = example["conversations"].replace(
-            "<|endoftext|>", processor.eos_token
+            "<|endoftext|>", END_SUFFIX
         )
 
         example["conversations"] = example["conversations"].replace(

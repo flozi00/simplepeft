@@ -1,1 +1,1 @@
-colossalai run --nproc_per_node 1 train.py -c "13b" -a -b 1 -g -l 1024 --lr "1e-5" --grad_checkpoint -p zero2_cpu
+colossalai run --nproc_per_node 1 train.py -c "13b" -a -g -b 1 -l 1024 --lr "1e-5" -p zero2_cpu -x fp16
