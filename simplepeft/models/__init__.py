@@ -197,11 +197,11 @@ def get_model(
                     modules_to_save=model_conf.get("modules_to_save", None),
                 )
 
-                peft_config = IA3Config(
-                    task_type=model_conf.get("task_type", None),
-                    target_modules=find_all_linear_names(model),
-                    modules_to_save=model_conf.get("modules_to_save", None),
-                )
+                # peft_config = IA3Config(
+                #    task_type=model_conf.get("task_type", None),
+                #    target_modules=find_all_linear_names(model),
+                #    modules_to_save=model_conf.get("modules_to_save", None),
+                # )
 
                 # load the peft model if possible, otherwise, create it from the base model and the lora config
                 try:

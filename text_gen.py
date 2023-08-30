@@ -6,15 +6,15 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 import simplepeft.train.train
 
-simplepeft.train.train.ACCUMULATION_STEPS = 16
+simplepeft.train.train.ACCUMULATION_STEPS = 8
 
 BATCH_SIZE = 1
-BASE_MODEL = "WizardLM/WizardCoder-Python-34B-V1.0"
+BASE_MODEL = "Phind/Phind-CodeLlama-34B-v2"
 PEFT_MODEL = "codellama-34b-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
-SEQ_LENGTH = 2048
+SEQ_LENGTH = 4096
 
 ASSISTANT_PREFIX = " ### Assistant:"
 USER_PREFIX = " ### User:"
