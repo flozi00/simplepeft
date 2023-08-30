@@ -3,6 +3,7 @@ from ..models.speech import SPEECH_MODELS, TTS_MODELS
 from ..models.text import TEXT_GEN_MODELS, TEXT_TEXT_MODELS
 from peft import (
     LoraConfig,
+    IA3Config,
     PeftModel,
     get_peft_model,
     prepare_model_for_kbit_training,
@@ -193,6 +194,12 @@ def get_model(
                     target_modules=find_all_linear_names(model),
                     task_type=model_conf.get("task_type", None),
                     inference_mode=False,
+                    modules_to_save=model_conf.get("modules_to_save", None),
+                )
+
+                peft_config = IA3Config(
+                    task_type=model_conf.get("task_type", None),
+                    target_modules=find_all_linear_names(model),
                     modules_to_save=model_conf.get("modules_to_save", None),
                 )
 
