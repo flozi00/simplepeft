@@ -9,7 +9,9 @@ END = "<|endoftext|>"
 def get_chat_dataset(T2T=False) -> datasets.Dataset:
     all_rows = []
 
-    ds = datasets.load_dataset("flozi00/conversations", split="train")
+    ds = datasets.load_dataset(
+        "flozi00/conversations", split="train", cache_dir="./downloadcache"
+    )
 
     if T2T is True:
         for x in ds:

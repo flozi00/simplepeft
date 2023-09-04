@@ -6,11 +6,11 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 import simplepeft.train.train
 
-simplepeft.train.train.ACCUMULATION_STEPS = 8
+simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 BATCH_SIZE = 1
-BASE_MODEL = "Phind/Phind-CodeLlama-34B-v2"
-PEFT_MODEL = "codellama-34b-german-assistant-v1"
+BASE_MODEL = "flozi00/Llama-2-7b-german-assistant-v3"
+PEFT_MODEL = "Llama-2-7b-german-informational-v1"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
@@ -21,8 +21,26 @@ USER_PREFIX = " ### User:"
 END_SUFFIX = "</s>"
 
 
+def combine_strings(strings):
+    result = []
+    current_string = strings[0]
+    for string in strings[1:]:
+        if len(current_string + string) <= SEQ_LENGTH * 3:
+            current_string += string
+        else:
+            result.append(current_string)
+            current_string = string
+    result.append(current_string)
+    return result
+
+
 def main():
     ds: Dataset = get_chat_dataset()
+    information = combine_strings(
+        ds.filter(lambda x: x["mode"] == "information")["conversations"]
+    )
+
+    ds = Dataset.from_dict({"conversations": information})
 
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
@@ -32,7 +50,7 @@ def main():
         use_peft=True,  # type: ignore
         use_py_flash=True,
         use_bnb=True,
-        lora_depth=128,
+        lora_depth=64,
     )
 
     model: PeftModelForCausalLM = model
@@ -44,7 +62,7 @@ def main():
         inputs = {k: v.to(model.device) for k, v in inputs.items()}
 
         # Generate
-        generate_ids = model.generate(**inputs, max_new_tokens=128)
+        generate_ids = model.generate(**inputs, max_new_tokens=32)
         decoded = processor.batch_decode(
             generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )[0]

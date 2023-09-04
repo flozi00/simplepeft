@@ -145,3 +145,4 @@ offload/
 *.json
 *-v*/*.py
 tb_logs/
+*cache*
