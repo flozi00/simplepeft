@@ -69,6 +69,7 @@ def get_model(
     push_to_hub=False,
     processor_name: str = None,
     use_py_flash=True,
+    use_flash_v2=False,
     use_bnb=True,
     lora_depth=128,
 ):
@@ -172,6 +173,10 @@ def get_model(
                     bnb_4bit_compute_dtype=torch.float16,
                     bnb_4bit_quant_type="fp4",
                 )
+
+            if use_flash_v2:
+                kwargs["use_flash_attn_2"] = True
+                use_py_flash = False
 
             # load the pre-trained model and check if its 8-bit compatible
             model = model_conf.get("class").from_pretrained(

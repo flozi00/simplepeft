@@ -36,11 +36,16 @@ def combine_strings(strings):
 
 def main():
     ds: Dataset = get_chat_dataset()
-    information = combine_strings(
-        ds.filter(lambda x: x["mode"] == "information")["conversations"]
-    )
+    categories = ds.unique("category")
 
-    ds = Dataset.from_dict({"conversations": information})
+    conv_list = []
+    for cat in categories:
+        this_data = combine_strings(
+            ds.filter(lambda x: x["mode"] == cat)["conversations"]
+        )
+        conv_list.extend(this_data)
+
+    ds = Dataset.from_dict({"conversations": conv_list})
 
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
@@ -48,9 +53,10 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=True,  # type: ignore
-        use_py_flash=True,
+        use_py_flash=False,
+        use_flash_v2=True,
         use_bnb=True,
-        lora_depth=64,
+        lora_depth=128,
     )
 
     model: PeftModelForCausalLM = model
