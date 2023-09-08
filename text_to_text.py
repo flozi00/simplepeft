@@ -1,18 +1,21 @@
-from chat_data import get_chat_dataset
 from simplepeft.data import get_dataloader
 from simplepeft.models import get_model
-from simplepeft.train.train import start_training
 from simplepeft.utils import Tasks
+import simplepeft.train.train
+import datasets
 
-BATCH_SIZE = 4
-BASE_MODEL = "allenai/led-large-16384"
-PEFT_MODEL = "led-large-16384-german-assistent"
+simplepeft.train.train.ACCUMULATION_STEPS = 16
+
+
+BATCH_SIZE = 16
+BASE_MODEL = "t5-small"
+PEFT_MODEL = "t5-small-llm-tasks"
 TASK = Tasks.Text2Text
 LR = 1e-4
 
 
 def main():
-    ds = get_chat_dataset(T2T=True)
+    ds = datasets.load_dataset("flozi00/LLM-Task-Classification", split="train")
 
     # load model, processor and model_conf by using the get_model function
     model, processor, model_conf = get_model(
@@ -20,6 +23,7 @@ def main():
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=True,
+        use_bnb=False,
     )
 
     # get the dataloader and define config for data loading and transformation
@@ -28,14 +32,14 @@ def main():
         processor=processor,
         datas=ds,
         BATCH_SIZE=BATCH_SIZE,
-        source_key="conversations",
-        target_key="answers",
-        max_input_length=4096 * 2,
-        max_output_length=1024,
+        source_key="text",
+        target_key="label",
+        max_input_length=512,
+        max_output_length=5,
     )
 
     # start training
-    start_training(
+    simplepeft.train.train.start_training(
         model=model,
         processor=processor,
         dloader=dloader,

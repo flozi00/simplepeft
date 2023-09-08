@@ -9,8 +9,8 @@ import simplepeft.train.train
 simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 BATCH_SIZE = 1
-BASE_MODEL = "flozi00/Llama-2-7b-german-assistant-v3"
-PEFT_MODEL = "Llama-2-7b-german-informational-v1"
+BASE_MODEL = "flozi00/Llama-2-13b-german-assistant-v6"
+PEFT_MODEL = "Llama-2-13b-german-assistant-v7"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
@@ -36,7 +36,7 @@ def combine_strings(strings):
 
 def main():
     ds: Dataset = get_chat_dataset()
-    categories = ds.unique("category")
+    categories = ds.unique("mode")
 
     conv_list = []
     for cat in categories:
@@ -75,23 +75,6 @@ def main():
 
         print(decoded)
         model.train()
-
-    def edit_special_tokens(example):
-        example["conversations"] = example["conversations"].replace(
-            "<|endoftext|>", END_SUFFIX
-        )
-
-        example["conversations"] = example["conversations"].replace(
-            "<|prompter|>", USER_PREFIX
-        )
-
-        example["conversations"] = example["conversations"].replace(
-            "<|assistant|>", ASSISTANT_PREFIX
-        )
-
-        return example
-
-    ds = ds.map(edit_special_tokens)
 
     # get the dataloader and define config for data loading and transformation
     dloader = get_dataloader(

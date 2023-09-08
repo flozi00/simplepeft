@@ -46,42 +46,48 @@ def start_training(
             accelerator.log({"eval_metric": eval_}, step=0)
 
     index = 1
-    while True:
-        for data in (pbar := tqdm(dloader)):
-            if index % 1000 == 0:
-                if callback is not None:
-                    eval_ = callback()
-                    if eval_ is not None:
-                        accelerator.log({"eval_metric": eval_}, step=index - 1)
-                model.save_pretrained(
-                    PEFT_MODEL,
-                    save_function=accelerator.save,
-                    state_dict=accelerator.get_state_dict(model),
-                    safe_serialization=False,
+    for data in (pbar := tqdm(dloader)):
+        if index % 1000 == 0:
+            if callback is not None:
+                eval_ = callback()
+                if eval_ is not None:
+                    accelerator.log({"eval_metric": eval_}, step=index - 1)
+            model.save_pretrained(
+                PEFT_MODEL,
+                save_function=accelerator.save,
+                state_dict=accelerator.get_state_dict(model),
+                safe_serialization=False,
+            )
+            model.push_to_hub(
+                PEFT_MODEL,
+                save_function=accelerator.save,
+                state_dict=accelerator.get_state_dict(model),
+                safe_serialization=False,
+            )
+            processor.save_pretrained(PEFT_MODEL)
+            processor.push_to_hub(PEFT_MODEL)
+
+        optim.zero_grad()
+        with accelerator.accumulate(model), accelerator.autocast():
+            data = {k: v.to(model.device) for k, v in data.items()}
+            output = model(return_dict=True, **data)
+            loss = output.loss
+            accelerator.backward(loss)
+
+            if index % ACCUMULATION_STEPS == 0:
+                pbar.set_description(
+                    f"Loss: {loss} LR: {get_lr(optim.optimizer)}",
+                    refresh=True,
                 )
-                processor.save_pretrained(PEFT_MODEL)
+                accelerator.log(
+                    values={
+                        "training_loss": loss,
+                    },
+                    step=int(index / ACCUMULATION_STEPS),
+                )
+            if accelerator.sync_gradients:
+                accelerator.clip_grad_value_(model.parameters(), 0.9)
+            optim.step()
+            scheduler.step()
 
-            optim.zero_grad()
-            with accelerator.accumulate(model), accelerator.autocast():
-                data = {k: v.to(model.device) for k, v in data.items()}
-                output = model(return_dict=True, **data)
-                loss = output.loss
-                accelerator.backward(loss)
-
-                if index % ACCUMULATION_STEPS == 0:
-                    pbar.set_description(
-                        f"Loss: {loss} LR: {get_lr(optim.optimizer)}",
-                        refresh=True,
-                    )
-                    accelerator.log(
-                        values={
-                            "training_loss": loss,
-                        },
-                        step=int(index / ACCUMULATION_STEPS),
-                    )
-                if accelerator.sync_gradients:
-                    accelerator.clip_grad_value_(model.parameters(), 0.9)
-                optim.step()
-                scheduler.step()
-
-            index += 1
+        index += 1
