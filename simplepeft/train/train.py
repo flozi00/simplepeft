@@ -45,27 +45,30 @@ def start_training(
         if eval_ is not None:
             accelerator.log({"eval_metric": eval_}, step=0)
 
+    def do_save_stuff():
+        if callback is not None:
+            eval_ = callback()
+            if eval_ is not None:
+                accelerator.log({"eval_metric": eval_}, step=index - 1)
+        model.save_pretrained(
+            PEFT_MODEL,
+            save_function=accelerator.save,
+            state_dict=accelerator.get_state_dict(model),
+            safe_serialization=False,
+        )
+        model.push_to_hub(
+            PEFT_MODEL,
+            save_function=accelerator.save,
+            state_dict=accelerator.get_state_dict(model),
+            safe_serialization=False,
+        )
+        processor.save_pretrained(PEFT_MODEL)
+        processor.push_to_hub(PEFT_MODEL)
+
     index = 1
     for data in (pbar := tqdm(dloader)):
-        if index % 1000 == 0:
-            if callback is not None:
-                eval_ = callback()
-                if eval_ is not None:
-                    accelerator.log({"eval_metric": eval_}, step=index - 1)
-            model.save_pretrained(
-                PEFT_MODEL,
-                save_function=accelerator.save,
-                state_dict=accelerator.get_state_dict(model),
-                safe_serialization=False,
-            )
-            model.push_to_hub(
-                PEFT_MODEL,
-                save_function=accelerator.save,
-                state_dict=accelerator.get_state_dict(model),
-                safe_serialization=False,
-            )
-            processor.save_pretrained(PEFT_MODEL)
-            processor.push_to_hub(PEFT_MODEL)
+        if index / ACCUMULATION_STEPS % 1000 == 0:
+            do_save_stuff()
 
         optim.zero_grad()
         with accelerator.accumulate(model), accelerator.autocast():
