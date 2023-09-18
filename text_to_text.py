@@ -8,17 +8,19 @@ simplepeft.train.train.ACCUMULATION_STEPS = 1
 
 
 BATCH_SIZE = 16
-BASE_MODEL = "t5-base"
-PEFT_MODEL = "t5-base-llm-tasks"
+BASE_MODEL = "t5-small"
+PEFT_MODEL = "t5-small-llm-tasks"
 TASK = Tasks.Text2Text
-LR = 1e-4
+LR = 1e-5
 
 
 def main():
-    ds = datasets.load_dataset("flozi00/LLM-Task-Classification", split="train")
+    ds = datasets.load_dataset(
+        "flozi00/LLM-Task-Classification", split="train", cache_dir="./downloadcache"
+    )
 
     model, processor = get_model(
-        task=TASK,  # type: ignore
+        task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
         use_peft=True,

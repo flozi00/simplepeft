@@ -8,7 +8,7 @@ def convert_model(task, model):
         if t.value == task:
             task = t
             break
-    model, processor, model_conf = get_model(
+    model, processor = get_model(
         task=task, model_name=model, use_peft=False, push_to_hub=True
     )
 
