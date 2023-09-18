@@ -17,8 +17,7 @@ LR = 1e-4
 def main():
     ds = datasets.load_dataset("flozi00/LLM-Task-Classification", split="train")
 
-    # load model, processor and model_conf by using the get_model function
-    model, processor, model_conf = get_model(
+    model, processor = get_model(
         task=TASK,  # type: ignore
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,

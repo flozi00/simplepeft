@@ -21,8 +21,6 @@ def start_training(
     PEFT_MODEL,
     LR: float,
     callback=None,
-    kbit=True,
-    peft_conf=None,
 ):
     accelerator = Accelerator(
         log_with="wandb",

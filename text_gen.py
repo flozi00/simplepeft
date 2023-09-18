@@ -47,8 +47,8 @@ def main():
 
     ds = Dataset.from_dict({"conversations": conv_list})
 
-    # load model, processor and model_conf by using the get_model function
-    model, processor, model_conf = get_model(
+    # load model, processor by using the get_model function
+    model, processor = get_model(
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
@@ -94,8 +94,6 @@ def main():
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
         callback=eval_fun,
-        kbit=model_conf.get("kbit", True),
-        peft_conf=model_conf.get("peft", None),
     )
 
 
