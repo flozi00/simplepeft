@@ -36,23 +36,13 @@ def combine_strings(strings):
 
 def main():
     ds: Dataset = get_chat_dataset()
-    categories = ds.unique("mode")
-
-    conv_list = []
-    for cat in categories:
-        this_data = combine_strings(
-            ds.filter(lambda x: x["mode"] == cat)["conversations"]
-        )
-        conv_list.extend(this_data)
-
-    ds = Dataset.from_dict({"conversations": conv_list})
 
     # load model, processor by using the get_model function
     model, processor = get_model(
         task=TASK,
         model_name=BASE_MODEL,
         peft_name=PEFT_MODEL,
-        use_peft=True,  # type: ignore
+        use_peft=True,
         use_py_flash=False,
         use_flash_v2=True,
         use_bnb=True,

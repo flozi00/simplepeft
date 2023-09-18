@@ -113,7 +113,6 @@ def get_model(
         pretrained_model_name_or_path=model_name,
         trust_remote_code=True,
     )
-    model_type_by_config = conf.model_type
     kwargs = {}
     bnb_compatible = (
         bnb_available is True
@@ -126,7 +125,7 @@ def get_model(
         processor = tok_class.from_pretrained(peft_name, legacy=False)
     except:
         # load the processor
-        processor = tok_class.get("processor").from_pretrained(
+        processor = tok_class.from_pretrained(
             model_name if processor_name is None else processor_name,
             legacy=False,
         )

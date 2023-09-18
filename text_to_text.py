@@ -4,12 +4,12 @@ from simplepeft.utils import Tasks
 import simplepeft.train.train
 import datasets
 
-simplepeft.train.train.ACCUMULATION_STEPS = 16
+simplepeft.train.train.ACCUMULATION_STEPS = 1
 
 
 BATCH_SIZE = 16
-BASE_MODEL = "t5-small"
-PEFT_MODEL = "t5-small-llm-tasks"
+BASE_MODEL = "t5-base"
+PEFT_MODEL = "t5-base-llm-tasks"
 TASK = Tasks.Text2Text
 LR = 1e-4
 
