@@ -9,8 +9,8 @@ import simplepeft.train.train
 simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 BATCH_SIZE = 1
-BASE_MODEL = "flozi00/Llama-2-13b-german-assistant-v6"
-PEFT_MODEL = "Llama-2-13b-german-assistant-v7"
+BASE_MODEL = "flozi00/codellama-34b-german-assistant-v1"
+PEFT_MODEL = "codellama-34b-german-assistant-v2"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
@@ -36,6 +36,8 @@ def combine_strings(strings):
 
 def main():
     ds: Dataset = get_chat_dataset()
+
+    ds = Dataset.from_dict({"conversations": combine_strings(ds["conversations"])})
 
     # load model, processor by using the get_model function
     model, processor = get_model(

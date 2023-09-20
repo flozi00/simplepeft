@@ -27,15 +27,15 @@ simplepeft.train.train.ACCUMULATION_STEPS = 4
 BATCH_SIZE = 1
 LR = 1e-5
 
-SEQ_LENGTH = 1024
+SEQ_LENGTH = 2048
 
 ASSISTANT_PREFIX = " ### Assistant:"
 USER_PREFIX = " ### User:"
 END_SUFFIX = "</s>"
 TASK = Tasks.TEXT_GEN
 
-processor = AutoTokenizer.from_pretrained("ibm/MoLM-700M-4B")
-model = AutoModelForCausalLM.from_pretrained("ibm/MoLM-700M-4B").cuda()
+processor = AutoTokenizer.from_pretrained("ibm/MoLM-700M-8B")
+model = AutoModelForCausalLM.from_pretrained("ibm/MoLM-700M-8B").cuda()
 
 processor.pad_token = processor.eos_token
 
@@ -73,7 +73,7 @@ def main():
         model=model,
         processor=processor,
         dloader=dloader,
-        PEFT_MODEL="MoLM-700M-4B-german",
+        PEFT_MODEL="MoLM-700M-8B-german",
         LR=LR,
         callback=eval_fun,
     )

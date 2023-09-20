@@ -89,7 +89,7 @@ def get_model(
     if task == Tasks.ASR:
         model_class = AutoModelForSpeechSeq2Seq
         tok_class = AutoProcessor
-        task_type = TaskType.SEQ_2_SEQ_LM
+        task_type = None
     elif task == Tasks.TEXT_GEN:
         model_class = AutoModelForCausalLM
         tok_class = AutoTokenizer
@@ -134,7 +134,9 @@ def get_model(
         kwargs["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_use_double_quant=False,
-            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_compute_dtype=torch.float16
+            if task != Tasks.ASR
+            else torch.float32,
             bnb_4bit_quant_type="fp4",
         )
 
@@ -147,7 +149,7 @@ def get_model(
         model_name,
         config=conf,
         trust_remote_code=True,
-        torch_dtype=torch.float16,
+        torch_dtype=torch.float16 if task != Tasks.ASR else torch.float32,
         **kwargs,
     )
 
@@ -193,8 +195,10 @@ def get_model(
                     names = name.split(".")
                     lora_module_names.add(names[0] if len(names) == 1 else names[-1])
 
-            if "lm_head" in lora_module_names:  # needed for 16-bit
-                lora_module_names.remove("lm_head")
+            for head in ["lm_head", "proj_out"]:
+                if head in lora_module_names:  # needed for 16-bit
+                    lora_module_names.remove(head)
+            print(list(lora_module_names))
             return list(lora_module_names)
 
         # create the lora config
@@ -238,10 +242,10 @@ def get_model(
         PUSH_NAME = peft_name.split(sep="/")[-1]
         model.half()
         model = BetterTransformer.reverse(model)
-        model.save_pretrained(PUSH_NAME, safe_serialization=True)
+        model.save_pretrained(PUSH_NAME, safe_serialization=task != Tasks.ASR)
         processor.save_pretrained(PUSH_NAME)
 
-        model.push_to_hub(PUSH_NAME, safe_serialization=True)
+        model.push_to_hub(PUSH_NAME, safe_serialization=task != Tasks.ASR)
         processor.push_to_hub(PUSH_NAME)
 
     return model, processor

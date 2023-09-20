@@ -1,19 +1,16 @@
 import datasets
-import torch
 from simplepeft.data import get_dataloader
+from simplepeft.models import get_model
 import simplepeft.train.train
 from simplepeft.utils import Tasks
 import pandas as pd
-from jiwer import wer
-from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 from unidecode import unidecode
 
-BATCH_SIZE = 8
-BASE_MODEL = "facebook/wav2vec2-large-xlsr-53"
-BASE_PROCESSOR = "aware-ai/wav2vec2-xls-r-300m-german"
-PEFT_MODEL = "wav2vec2-large-xlsr-german-cv14"
+BATCH_SIZE = 64
+BASE_MODEL = "openai/whisper-large-v2"
+PEFT_MODEL = "whisper-large-v2-german-cv15"
 TASK = Tasks.ASR
-LR = 1e-4
+LR = 1e-5
 
 simplepeft.train.train.ACCUMULATION_STEPS = 1
 
@@ -47,7 +44,7 @@ def normalize_text(batch):
 # the dataset is filtered to only contain sentences with more than 5 characters and at least 2 upvotes and no downvotes
 # the audio is casted to the Audio feature of the datasets library with a sampling rate of 16000
 def get_dataset() -> datasets.Dataset:
-    CV_DATA_PATH = "./cv-corpus-14.0-2023-06-23/de/"
+    CV_DATA_PATH = "./cv-corpus-15.0-2023-09-08/de/"
     df = pd.read_table(filepath_or_buffer=f"{CV_DATA_PATH}validated.tsv")
     df["audio"] = f"{CV_DATA_PATH}clips/" + df["path"].astype(dtype=str)
     df["down_votes"] = df["down_votes"].astype(dtype=int)
@@ -71,64 +68,18 @@ def get_dataset() -> datasets.Dataset:
 
 
 def main():
-    cv_data = get_dataset().map(normalize_text)
-    all_chars = set(" ".join(cv_data["sentence"]))
-
-    processor = Wav2Vec2Processor.from_pretrained(BASE_PROCESSOR)
-    vocab_size = len(processor.tokenizer)
-    model = Wav2Vec2ForCTC.from_pretrained(
-        BASE_MODEL,
-        vocab_size=vocab_size,
-        # target_lang="deu",
-        # ignore_mismatched_sizes=True,
-    ).cuda()
-
-    model.config.ctc_loss_reduction = "mean"
-
-    model.config.update(
-        {
-            "feat_proj_dropout": 0,
-            "attention_dropout": 0,
-            "hidden_dropout": 0,
-            "final_dropout": 0,
-            "mask_time_prob": 0,
-            "mask_time_length": 0,
-            "mask_feature_prob": 0,
-            "mask_feature_length": 0,
-            "layerdrop": 0,
-            "ctc_loss_reduction": "mean",
-            "pad_token_id": processor.tokenizer.pad_token_id,
-            "activation_dropout": 0,
-        }
+    cv_data = get_dataset()
+    cv_data = cv_data.map(normalize_text)
+    model, processor = get_model(
+        task=TASK,
+        model_name=BASE_MODEL,
+        peft_name=PEFT_MODEL,
+        use_peft=True,
+        use_py_flash=True,
+        use_flash_v2=False,
+        use_bnb=True,
+        lora_depth=128,
     )
-
-    def eval_func_w2v():
-        model.eval()
-        trans = []
-        vals = []
-        for xyz in range(0, BATCH_SIZE * 16, BATCH_SIZE):
-            audios = [
-                cv_data[index]["audio"]["array"]
-                for index in range(xyz, xyz + BATCH_SIZE)
-            ]
-            for index in range(xyz, xyz + BATCH_SIZE):
-                vals.append(cv_data[index]["sentence"])
-            inputs = (
-                processor(
-                    audios, sampling_rate=16000, return_tensors="pt", padding=True
-                )
-                .to(model.device)
-                .input_values
-            )
-            with torch.no_grad():
-                logits = model(input_values=inputs).logits
-            predicted_ids = torch.argmax(logits, dim=-1)
-            transcription = processor.batch_decode(predicted_ids)
-            trans.extend(transcription)
-
-        model.train()
-
-        return wer(vals, trans) * 100
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
     # check the **kwargs in the get_dataloader function in simplepeft/data/main.py for more information
@@ -136,7 +87,7 @@ def main():
         task=TASK,  # type: ignore
         processor=processor,
         datas=cv_data,
-        max_audio_in_seconds=10,
+        max_audio_in_seconds=28,
         BATCH_SIZE=BATCH_SIZE,
         batch_size=BATCH_SIZE,
     )
@@ -148,7 +99,6 @@ def main():
         dloader=dloader,
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
-        callback=eval_func_w2v,
     )
 
 
