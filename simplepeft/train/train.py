@@ -33,7 +33,7 @@ def start_training(
 
     optim = PagedLion32bit(model.parameters(), lr=LR)
 
-    scheduler = ExponentialLR(optim, gamma=0.99995)
+    scheduler = ExponentialLR(optim, gamma=0.9999)
     model, optim, dloader, scheduler = accelerator.prepare(
         model, optim, dloader, scheduler
     )

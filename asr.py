@@ -7,12 +7,12 @@ import pandas as pd
 from unidecode import unidecode
 
 BATCH_SIZE = 64
-BASE_MODEL = "openai/whisper-large-v2"
-PEFT_MODEL = "whisper-large-v2-german-cv15"
+BASE_MODEL = "flozi00/whisper-large-v2-german-cv15"
+PEFT_MODEL = "whisper-large-v2-german-cv15-v1"
 TASK = Tasks.ASR
 LR = 1e-5
 
-simplepeft.train.train.ACCUMULATION_STEPS = 1
+simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 
 def normalize_text(batch):
@@ -69,7 +69,7 @@ def get_dataset() -> datasets.Dataset:
 
 def main():
     cv_data = get_dataset()
-    cv_data = cv_data.map(normalize_text)
+    cv_data = cv_data.map(normalize_text, num_proc=4)
     model, processor = get_model(
         task=TASK,
         model_name=BASE_MODEL,
@@ -78,8 +78,11 @@ def main():
         use_py_flash=True,
         use_flash_v2=False,
         use_bnb=True,
-        lora_depth=128,
+        lora_depth=256,
     )
+
+    model.config.forced_decoder_ids = None
+    model.config.suppress_tokens = []
 
     # get the automatic dataloader for the given task, in this case the default arguments are working for data columns, otherwise they can be specified
     # check the **kwargs in the get_dataloader function in simplepeft/data/main.py for more information

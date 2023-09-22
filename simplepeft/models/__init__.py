@@ -198,7 +198,6 @@ def get_model(
             for head in ["lm_head", "proj_out"]:
                 if head in lora_module_names:  # needed for 16-bit
                     lora_module_names.remove(head)
-            print(list(lora_module_names))
             return list(lora_module_names)
 
         # create the lora config
