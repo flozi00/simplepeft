@@ -87,7 +87,7 @@ def start_training(
                     step=int(index / ACCUMULATION_STEPS),
                 )
             if accelerator.sync_gradients:
-                accelerator.clip_grad_value_(model.parameters(), 0.9)
+                accelerator.clip_grad_value_(model.parameters(), 0.7)
             optim.step()
             scheduler.step()
 

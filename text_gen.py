@@ -6,13 +6,13 @@ from datasets import Dataset
 from peft import PeftModelForCausalLM
 import simplepeft.train.train
 
-simplepeft.train.train.ACCUMULATION_STEPS = 1
+simplepeft.train.train.ACCUMULATION_STEPS = 4
 
-BATCH_SIZE = 2
-BASE_MODEL = "PY007/TinyLlama-1.1B-Chat-v0.2"
-PEFT_MODEL = "Llama-1b-german-assistant-v1"
+BATCH_SIZE = 1
+BASE_MODEL = "mistralai/Mistral-7B-Instruct-v0.1"
+PEFT_MODEL = "Mistral-7B-german-assistant-v1"
 TASK = Tasks.TEXT_GEN
-LR = 1e-4
+LR = 1e-5
 
 SEQ_LENGTH = 4096
 
@@ -47,7 +47,7 @@ def main():
         use_peft=True,
         use_py_flash=False,
         use_flash_v2=True,
-        use_bnb=False,
+        use_bnb=True,
         lora_depth=128,
     )
 

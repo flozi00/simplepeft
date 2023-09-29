@@ -141,15 +141,15 @@ def get_model(
         )
 
     if use_flash_v2:
-        kwargs["use_flash_attn_2"] = True
+        kwargs["use_flash_attention_2"] = True
         use_py_flash = False
 
     # load the pre-trained model and check if its 8-bit compatible
     model = model_class.from_pretrained(
         model_name,
         config=conf,
-        trust_remote_code=True,
         torch_dtype=torch.float16 if task != Tasks.ASR else torch.float32,
+        device_map="auto",
         **kwargs,
     )
 
@@ -198,7 +198,8 @@ def get_model(
             for head in ["lm_head", "proj_out"]:
                 if head in lora_module_names:  # needed for 16-bit
                     lora_module_names.remove(head)
-            return list(lora_module_names)
+            print(lora_module_names)
+            return list(set(lora_module_names))
 
         # create the lora config
         peft_config = LoraConfig(
