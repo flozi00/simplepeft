@@ -6,9 +6,9 @@ from simplepeft.utils import Tasks
 import pandas as pd
 from unidecode import unidecode
 
-BATCH_SIZE = 64
-BASE_MODEL = "flozi00/whisper-large-v2-german-cv15"
-PEFT_MODEL = "whisper-large-v2-german-cv15-v1"
+BATCH_SIZE = 16
+BASE_MODEL = "openai/whisper-small"
+PEFT_MODEL = "whisper-small-german-cv15-v1"
 TASK = Tasks.ASR
 LR = 1e-5
 
