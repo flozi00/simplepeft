@@ -241,7 +241,10 @@ def get_model(
     if push_to_hub:
         PUSH_NAME = peft_name.split(sep="/")[-1]
         model.half()
-        model = BetterTransformer.reverse(model)
+        try:
+            model = BetterTransformer.reverse(model)
+        except Exception as e:
+            print(e)
         model.save_pretrained(PUSH_NAME, safe_serialization=task != Tasks.ASR)
         processor.save_pretrained(PUSH_NAME)
 
