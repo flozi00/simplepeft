@@ -12,7 +12,7 @@ PEFT_MODEL = "whisper-small-german-cv15-v1"
 TASK = Tasks.ASR
 LR = 1e-5
 
-simplepeft.train.train.ACCUMULATION_STEPS = 4
+simplepeft.train.train.ACCUMULATION_STEPS = 16
 
 
 def normalize_text(batch):
