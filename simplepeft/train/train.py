@@ -21,6 +21,7 @@ def start_training(
     PEFT_MODEL,
     LR: float,
     callback=None,
+    num_epochs=1,
 ):
     accelerator = Accelerator(
         log_with="wandb",
@@ -33,7 +34,7 @@ def start_training(
 
     optim = PagedLion32bit(model.parameters(), lr=LR)
 
-    scheduler = ExponentialLR(optim, gamma=0.9999)
+    scheduler = ExponentialLR(optim, gamma=0.9995)
     model, optim, dloader, scheduler = accelerator.prepare(
         model, optim, dloader, scheduler
     )
@@ -64,33 +65,34 @@ def start_training(
         processor.push_to_hub(PEFT_MODEL)
 
     index = 1
-    for data in (pbar := tqdm(dloader)):
-        if index / ACCUMULATION_STEPS % 1000 == 0:
-            do_save_stuff()
+    for epoch in range(num_epochs):
+        for data in (pbar := tqdm(dloader)):
+            if index / ACCUMULATION_STEPS % 1000 == 0:
+                do_save_stuff()
 
-        optim.zero_grad()
-        with accelerator.accumulate(model), accelerator.autocast():
-            data = {k: v.to(model.device) for k, v in data.items()}
-            output = model(return_dict=True, **data)
-            loss = output.loss
-            accelerator.backward(loss)
+            optim.zero_grad()
+            with accelerator.accumulate(model), accelerator.autocast():
+                data = {k: v.to(model.device) for k, v in data.items()}
+                output = model(return_dict=True, **data)
+                loss = output.loss
+                accelerator.backward(loss)
 
-            if index % ACCUMULATION_STEPS == 0:
-                pbar.set_description(
-                    f"Loss: {loss} LR: {get_lr(optim.optimizer)}",
-                    refresh=True,
-                )
-                accelerator.log(
-                    values={
-                        "training_loss": loss,
-                    },
-                    step=int(index / ACCUMULATION_STEPS),
-                )
-            if accelerator.sync_gradients:
-                accelerator.clip_grad_value_(model.parameters(), 0.7)
-            optim.step()
-            scheduler.step()
+                if index % ACCUMULATION_STEPS == 0:
+                    pbar.set_description(
+                        f"Loss: {loss} LR: {get_lr(optim.optimizer)}",
+                        refresh=True,
+                    )
+                    accelerator.log(
+                        values={
+                            "training_loss": loss,
+                        },
+                        step=int(index / ACCUMULATION_STEPS),
+                    )
+                if accelerator.sync_gradients:
+                    accelerator.clip_grad_value_(model.parameters(), 0.7)
+                optim.step()
+                scheduler.step()
 
-        index += 1
+            index += 1
 
     do_save_stuff()

@@ -7,9 +7,9 @@ import datasets
 simplepeft.train.train.ACCUMULATION_STEPS = 1
 
 
-BATCH_SIZE = 16
-BASE_MODEL = "t5-small"
-PEFT_MODEL = "t5-small-llm-tasks"
+BATCH_SIZE = 4
+BASE_MODEL = "t5-base"
+PEFT_MODEL = "t5-base-llm-tasks"
 TASK = Tasks.Text2Text
 LR = 1e-5
 
@@ -25,6 +25,7 @@ def main():
         peft_name=PEFT_MODEL,
         use_peft=True,
         use_bnb=False,
+        lora_depth=128,
     )
 
     # get the dataloader and define config for data loading and transformation
@@ -34,7 +35,8 @@ def main():
         datas=ds,
         BATCH_SIZE=BATCH_SIZE,
         source_key="text",
-        target_key="label",
+        target_key="named_labels",
+        prefix="classify: ",
         max_input_length=512,
         max_output_length=5,
     )
@@ -46,6 +48,7 @@ def main():
         dloader=dloader,
         PEFT_MODEL=PEFT_MODEL,
         LR=LR,
+        num_epochs=2,
     )
 
 

@@ -10,6 +10,7 @@ class TextTextDataCollator:
     tok: AutoTokenizer
     source_key: str = "input"
     target_key: str = "output"
+    prefix: str = ""
     max_input_length: int = 1024
     max_output_length: int = 1024
 
@@ -17,7 +18,7 @@ class TextTextDataCollator:
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
     ) -> Dict[str, torch.Tensor]:
         inputs = [
-            f[self.source_key] for f in features
+            self.prefix + f[self.source_key] for f in features
         ]  # list of strings (sentences) to be tokenized as inputs
         outputs = [
             f[self.target_key] for f in features

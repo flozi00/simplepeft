@@ -42,6 +42,9 @@ def get_dataloader(
             target_key=kwargs.get(
                 "target_key", "target"
             ),  # target_key is a key to get the target text from the dataset
+            prefix=kwargs.get(
+                "prefix", ""
+            ),  # prefix is a prefix to be added to the source text
             max_input_length=kwargs.get(
                 "max_input_length", 1024
             ),  # max_input_length is the maximum length in tokens of the input text
