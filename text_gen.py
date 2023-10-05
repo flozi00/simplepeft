@@ -10,7 +10,7 @@ simplepeft.train.train.ACCUMULATION_STEPS = 4
 
 BATCH_SIZE = 1
 BASE_MODEL = "mistralai/Mistral-7B-Instruct-v0.1"
-PEFT_MODEL = "Mistral-7B-german-assistant-v1"
+PEFT_MODEL_BASE = "Mistral-7B-german-moe-v1-"
 TASK = Tasks.TEXT_GEN
 LR = 1e-5
 
@@ -36,19 +36,18 @@ def combine_strings(strings):
 
 def main():
     ds: Dataset = get_chat_dataset()
-
-    ds = Dataset.from_dict({"conversations": combine_strings(ds["conversations"])})
+    labels = ds.unique("labels")
 
     # load model, processor by using the get_model function
     model, processor = get_model(
         task=TASK,
         model_name=BASE_MODEL,
-        peft_name=PEFT_MODEL,
+        peft_name=PEFT_MODEL_BASE,
         use_peft=True,
         use_py_flash=False,
         use_flash_v2=True,
         use_bnb=True,
-        lora_depth=128,
+        lora_depth=32,
     )
 
     model: PeftModelForCausalLM = model
@@ -62,31 +61,44 @@ def main():
         # Generate
         generate_ids = model.generate(**inputs, max_new_tokens=32)
         decoded = processor.batch_decode(
-            generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            generate_ids,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False,
         )[0]
 
         print(decoded)
         model.train()
 
-    # get the dataloader and define config for data loading and transformation
-    dloader = get_dataloader(
-        task=TASK,  # type: ignore
-        processor=processor,
-        datas=ds,
-        BATCH_SIZE=BATCH_SIZE,
-        max_input_length=SEQ_LENGTH,
-        text_key="conversations",
-    )
+    for label in labels:
+        PEFT_MODEL = PEFT_MODEL_BASE + label
 
-    # start training
-    simplepeft.train.train.start_training(
-        model=model,
-        processor=processor,
-        dloader=dloader,
-        PEFT_MODEL=PEFT_MODEL,
-        LR=LR,
-        callback=eval_fun,
-    )
+        ds_part = ds.filter(lambda x: x["labels"] == label)
+
+        ds_part = Dataset.from_dict(
+            {
+                "conversations": combine_strings(ds_part["conversations"]),
+            }
+        )
+
+        # get the dataloader and define config for data loading and transformation
+        dloader = get_dataloader(
+            task=TASK,
+            processor=processor,
+            datas=ds_part,
+            BATCH_SIZE=BATCH_SIZE,
+            max_input_length=SEQ_LENGTH,
+            text_key="conversations",
+        )
+
+        # start training
+        simplepeft.train.train.start_training(
+            model=model,
+            processor=processor,
+            dloader=dloader,
+            PEFT_MODEL=PEFT_MODEL,
+            LR=LR,
+            callback=eval_fun,
+        )
 
 
 if __name__ == "__main__":
